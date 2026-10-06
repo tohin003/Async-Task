@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { proposalSchema, type ToolTrace } from './contracts';
 import { runInspectionTool, TOOL_NAMES, validateLiveResult, type Inspection } from './planner';
 import { PLANNER_DEADLINE_MS } from './planner-limits';
+import type { PlannerStep } from './planner-logs';
 
 const noArgs = { type: 'object', properties: {}, required: [], additionalProperties: false };
 const proposalJsonSchema = z.toJSONSchema(proposalSchema, { target: 'draft-7' });
@@ -48,6 +49,7 @@ export async function livePlan(
   apiKey: string,
   model: string,
   fetcher: typeof fetch = fetch,
+  observe: (step: PlannerStep) => void = () => {},
 ) {
   const trace: ToolTrace[] = [];
   const input: unknown[] = [
@@ -61,6 +63,7 @@ export async function livePlan(
   let calls = 0;
   try {
     for (let round = 0; round < 7; round++) {
+      observe({ event: 'provider.round', round: round + 1 });
       const response = await fetcher('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -109,6 +112,14 @@ export async function livePlan(
           } catch (e) {
             result = { blocked: true, reason: e instanceof Error ? e.message : 'Tool blocked' };
           }
+          observe({
+            event: 'tool.completed',
+            round: round + 1,
+            tool: TOOL_NAMES.includes(call.name as (typeof TOOL_NAMES)[number])
+              ? (call.name as (typeof TOOL_NAMES)[number])
+              : 'unknown',
+            status: (result as { blocked?: boolean }).blocked ? 'blocked' : 'passed',
+          });
           input.push({
             type: 'function_call_output',
             call_id: call.call_id,
@@ -150,8 +161,15 @@ export async function livePlan(
           inspection,
           trace,
         );
+        observe({
+          event: 'tool.completed',
+          round: round + 1,
+          tool: 'validate_proposal',
+          status: 'passed',
+        });
         return { proposal, trace, provider: 'live' as const };
       } catch (error) {
+        observe({ event: 'proposal.repair', round: round + 1 });
         const reason =
           error instanceof Error ? error.message.slice(0, 2000) : 'Invalid proposal format';
         input.push({

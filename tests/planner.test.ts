@@ -11,6 +11,7 @@ import {
 import { livePlan } from '../src/lib/live-planner';
 import { PLANNER_DEADLINE_MS } from '../src/lib/planner-limits';
 import type { ToolTrace } from '../src/lib/contracts';
+import type { PlannerStep } from '../src/lib/planner-logs';
 
 const dataset = createDataset(demoBundle);
 const inspection = inspectDataset(dataset);
@@ -172,6 +173,7 @@ describe('bounded planner', () => {
   });
   it('runs an actual bounded tool loop and validates the final provider response', async () => {
     let round = 0;
+    const observed: PlannerStep[] = [];
     const tools = [
       'inspect_schemas',
       'profile_source',
@@ -207,9 +209,15 @@ describe('bounded planner', () => {
         }),
       );
     }) as typeof fetch;
-    const result = await livePlan(inspection, 'test', 'test', fetcher);
+    const result = await livePlan(inspection, 'test', 'test', fetcher, (step) =>
+      observed.push(step),
+    );
     expect(result.provider).toBe('live');
     expect(result.trace).toHaveLength(5);
+    expect(
+      observed.filter((step) => step.event === 'tool.completed').map((step) => step.tool),
+    ).toEqual(tools);
+    expect(observed.filter((step) => step.event === 'provider.round')).toHaveLength(4);
   });
   it('accepts only the exact wrapped final proposal after inspection', async () => {
     let round = 0;

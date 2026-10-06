@@ -136,10 +136,22 @@ pre {
   color: #9da9c1;
   position: fixed;
   inset: 0 auto 0 0;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 30px 16px 0;
+  padding: 30px 16px env(safe-area-inset-bottom, 0px);
+  overflow: hidden;
   z-index: 30;
+}
+.sidebar-scroll {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #36445e transparent;
 }
 .sidebar-top {
   padding: 0 10px;
@@ -321,6 +333,7 @@ pre {
 }
 .sidebar-user {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 10px;
   padding: 23px 6px;

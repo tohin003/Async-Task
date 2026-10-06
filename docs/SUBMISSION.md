@@ -39,3 +39,5 @@ One active source, one target, maximum 500 rows/32 fields/1 MB. Target persisten
 ## Evidence
 
 See [RELEASE.md](RELEASE.md) for executed verification results, [ARCHITECTURE.md](ARCHITECTURE.md) for trust boundaries, and the repository's commit history for phased delivery.
+
+The [submission checklist](SUBMISSION_CHECKLIST.md) maps every supplied criterion to implementation and evidence. [AGENT_USAGE.md](../AGENT_USAGE.md) records how both agents and output verification were used. [Paste-ready remarks](SUBMISSION_REMARKS.md) include public access and sample inputs without production credentials.

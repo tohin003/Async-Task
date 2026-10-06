@@ -23,6 +23,7 @@ finite transformations → deterministic dry run → explicit approval → atomi
 - `src/lib/planner.ts`: tool allowlist, aggregate-only inspection, proposal guard.
 - `src/app/api/plan/route.ts`: optional server-side live planning; secrets never reach the browser.
 - `src/components/`: product experience, user intent and evidence inspection.
+- `src/lib/planner-logs.ts`: server request identity and explicitly selected JSON metadata; no prompts, payloads, credentials or raw exceptions.
 
 ## Storage model
 
@@ -39,6 +40,8 @@ The planner receives schemas and aggregate validation profiles only. It can insp
 Categorical evidence includes counts only for declared enums, booleans and a finite recognized status/consent vocabulary. Names, IDs and contact values are never sampled into the tool output. Pipelines that reject every observed category against the actual target type are blocked, including enum lookups yielding string true/false for boolean targets. Defaults and enum translations changing business meaning require blocking user clarifications. Independent inspection tools can run in parallel, and an accepted validated proposal completes the loop without generating a second copy. Public-origin validation uses the incoming host and forwarded scheme so legitimate localhost aliases and Vercel proxy requests are accepted while foreign origins are rejected.
 
 Whitespace counts expose normalization needs without revealing values. The proposal validator requires trim when source whitespace would fail strict email/date/boolean parsing. Final output uses a strict JSON schema; invalid proposals receive bounded repair feedback. A request has a 90-second provider deadline within a 120-second Vercel route duration, seven rounds and twelve tool calls. The browser allows 110 seconds for response delivery. A timeout preserves the existing plan and surfaces an explicit error.
+
+Every planning POST generates a server UUID returned in `X-Request-Id`. JSON events correlate provider rounds, allowed/blocked tools, repair and success/failure to that request. Failure codes distinguish invalid user input from provider failure/timeout. Only explicit metadata fields are serialized; tool arguments, schema/record data, authentication and raw errors are excluded. Persistent application history remains in IndexedDB. See [LOGGING.md](LOGGING.md).
 
 ## AgentGuard
 

@@ -1,0 +1,1320 @@
+{
+  "name": "Customer registry migration",
+  "sourceSchema": {
+    "name": "legacy_customers",
+    "primaryKey": "customer_id",
+    "fields": [
+      {
+        "name": "customer_id",
+        "type": "string",
+        "required": true,
+        "unique": true,
+        "description": "Stable legacy customer identifier"
+      },
+      {
+        "name": "full_name",
+        "type": "string",
+        "required": true,
+        "unique": false
+      },
+      {
+        "name": "email_address",
+        "type": "string",
+        "required": true,
+        "unique": false
+      },
+      {
+        "name": "signup_date",
+        "type": "string",
+        "required": true,
+        "unique": false
+      },
+      {
+        "name": "lifetime_value",
+        "type": "string",
+        "required": false,
+        "unique": false,
+        "description": "Decimal amount in USD"
+      },
+      {
+        "name": "account_status",
+        "type": "string",
+        "required": true,
+        "unique": false
+      },
+      {
+        "name": "marketing_opt_in",
+        "type": "string",
+        "required": false,
+        "unique": false
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "unique": false
+      }
+    ]
+  },
+  "targetSchema": {
+    "name": "customers_v2",
+    "primaryKey": "id",
+    "fields": [
+      {
+        "name": "id",
+        "type": "string",
+        "required": true,
+        "unique": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "unique": false,
+        "max": 100
+      },
+      {
+        "name": "email",
+        "type": "email",
+        "required": true,
+        "unique": true
+      },
+      {
+        "name": "joined_at",
+        "type": "date",
+        "required": true,
+        "unique": false
+      },
+      {
+        "name": "total_spend",
+        "type": "number",
+        "required": true,
+        "unique": false,
+        "min": 0
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "required": true,
+        "unique": false,
+        "values": ["active", "inactive", "paused"]
+      },
+      {
+        "name": "subscribed",
+        "type": "boolean",
+        "required": true,
+        "unique": false
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "unique": false,
+        "min": 2,
+        "max": 2
+      }
+    ]
+  },
+  "records": [
+    {
+      "customer_id": "CUS-0001",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.1@example.com ",
+      "signup_date": "2025-01-01",
+      "lifetime_value": null,
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0002",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.2@example.com ",
+      "signup_date": "2025-02-02",
+      "lifetime_value": "54.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0003",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.3@example.com ",
+      "signup_date": "2025-03-03",
+      "lifetime_value": "74.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0004",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.4@example.com ",
+      "signup_date": "2025-04-04",
+      "lifetime_value": "93.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0005",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.5@example.com ",
+      "signup_date": "2025-05-05",
+      "lifetime_value": "112.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0006",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.6@example.com ",
+      "signup_date": "2025-06-06",
+      "lifetime_value": "131.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0007",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.7@example.com ",
+      "signup_date": "2025-07-07",
+      "lifetime_value": "151.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0008",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.8@example.com ",
+      "signup_date": "2025-08-08",
+      "lifetime_value": "170.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0009",
+      "full_name": " Ava Singh ",
+      "email_address": "invalid-email",
+      "signup_date": "2025-09-09",
+      "lifetime_value": "189.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0010",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.10@example.com ",
+      "signup_date": "2025-10-10",
+      "lifetime_value": "208.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0011",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.11@example.com ",
+      "signup_date": "2025-11-11",
+      "lifetime_value": "228.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0012",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.12@example.com ",
+      "signup_date": "2025-12-12",
+      "lifetime_value": "247.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0013",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.13@example.com ",
+      "signup_date": "2025-01-13",
+      "lifetime_value": "266.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0014",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.14@example.com ",
+      "signup_date": "2025-02-14",
+      "lifetime_value": null,
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0015",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.15@example.com ",
+      "signup_date": "2025-02-30",
+      "lifetime_value": "305.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0016",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.16@example.com ",
+      "signup_date": "2025-04-16",
+      "lifetime_value": "324.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0017",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.17@example.com ",
+      "signup_date": "2025-05-17",
+      "lifetime_value": "343.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0018",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.18@example.com ",
+      "signup_date": "2025-06-18",
+      "lifetime_value": "362.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0019",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.19@example.com ",
+      "signup_date": "2025-07-19",
+      "lifetime_value": "382.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0020",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.20@example.com ",
+      "signup_date": "2025-08-20",
+      "lifetime_value": "401.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0021",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.21@example.com ",
+      "signup_date": "2025-09-21",
+      "lifetime_value": "420.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0022",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.22@example.com ",
+      "signup_date": "2025-10-22",
+      "lifetime_value": "USD 120",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0023",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.23@example.com ",
+      "signup_date": "2025-11-23",
+      "lifetime_value": "459.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0024",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.24@example.com ",
+      "signup_date": "2025-12-24",
+      "lifetime_value": "478.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0025",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.25@example.com ",
+      "signup_date": "2025-01-25",
+      "lifetime_value": "497.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0026",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.26@example.com ",
+      "signup_date": "2025-02-26",
+      "lifetime_value": "516.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0027",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.27@example.com ",
+      "signup_date": "2025-03-27",
+      "lifetime_value": null,
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0028",
+      "full_name": " Noah Patel ",
+      "email_address": "invalid-email",
+      "signup_date": "2025-04-01",
+      "lifetime_value": "555.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0029",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.29@example.com ",
+      "signup_date": "2025-05-02",
+      "lifetime_value": "574.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0030",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.30@example.com ",
+      "signup_date": "2025-06-03",
+      "lifetime_value": "593.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0031",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.31@example.com ",
+      "signup_date": "2025-07-04",
+      "lifetime_value": "613.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0032",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.32@example.com ",
+      "signup_date": "2025-08-05",
+      "lifetime_value": "632.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0033",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.33@example.com ",
+      "signup_date": "2025-09-06",
+      "lifetime_value": "651.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0034",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.34@example.com ",
+      "signup_date": "2025-10-07",
+      "lifetime_value": "670.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0035",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.35@example.com ",
+      "signup_date": "2025-11-08",
+      "lifetime_value": "690.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0036",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.36@example.com ",
+      "signup_date": "2025-12-09",
+      "lifetime_value": "709.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0037",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.37@example.com ",
+      "signup_date": "2025-01-10",
+      "lifetime_value": "728.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0038",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.38@example.com ",
+      "signup_date": "2025-02-11",
+      "lifetime_value": "747.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0039",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.39@example.com ",
+      "signup_date": "2025-03-12",
+      "lifetime_value": "767.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0040",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.40@example.com ",
+      "signup_date": "2025-04-13",
+      "lifetime_value": null,
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0041",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.41@example.com ",
+      "signup_date": "2025-05-14",
+      "lifetime_value": "805.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0042",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.42@example.com ",
+      "signup_date": "2025-06-15",
+      "lifetime_value": "824.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0043",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.43@example.com ",
+      "signup_date": "2025-07-16",
+      "lifetime_value": "844.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0044",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.44@example.com ",
+      "signup_date": "2025-08-17",
+      "lifetime_value": "863.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0045",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.45@example.com ",
+      "signup_date": "2025-02-30",
+      "lifetime_value": "882.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0046",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.46@example.com ",
+      "signup_date": "2025-10-19",
+      "lifetime_value": "901.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0047",
+      "full_name": " Chloe Davis ",
+      "email_address": "invalid-email",
+      "signup_date": "2025-11-20",
+      "lifetime_value": "921.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0048",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.48@example.com ",
+      "signup_date": "2025-12-21",
+      "lifetime_value": "940.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0049",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.49@example.com ",
+      "signup_date": "2025-01-22",
+      "lifetime_value": "959.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0050",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.50@example.com ",
+      "signup_date": "2025-02-23",
+      "lifetime_value": "978.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0051",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.51@example.com ",
+      "signup_date": "2025-03-24",
+      "lifetime_value": "998.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0052",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.52@example.com ",
+      "signup_date": "2025-04-25",
+      "lifetime_value": "1017.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0053",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.53@example.com ",
+      "signup_date": "2025-05-26",
+      "lifetime_value": null,
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0054",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.54@example.com ",
+      "signup_date": "2025-06-27",
+      "lifetime_value": "1055.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0055",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.55@example.com ",
+      "signup_date": "2025-07-01",
+      "lifetime_value": "1075.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0056",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.56@example.com ",
+      "signup_date": "2025-08-02",
+      "lifetime_value": "1094.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0057",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.57@example.com ",
+      "signup_date": "2025-09-03",
+      "lifetime_value": "1113.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0058",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.58@example.com ",
+      "signup_date": "2025-10-04",
+      "lifetime_value": "1132.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0059",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.59@example.com ",
+      "signup_date": "2025-11-05",
+      "lifetime_value": "1152.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0060",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.60@example.com ",
+      "signup_date": "2025-12-06",
+      "lifetime_value": "1171.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0061",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.61@example.com ",
+      "signup_date": "2025-01-07",
+      "lifetime_value": "1190.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0062",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.62@example.com ",
+      "signup_date": "2025-02-08",
+      "lifetime_value": "1209.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0063",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.63@example.com ",
+      "signup_date": "2025-03-09",
+      "lifetime_value": "1229.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0064",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.64@example.com ",
+      "signup_date": "2025-04-10",
+      "lifetime_value": "1248.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0065",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.65@example.com ",
+      "signup_date": "2025-05-11",
+      "lifetime_value": "1267.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0066",
+      "full_name": " Leo Rivera ",
+      "email_address": "invalid-email",
+      "signup_date": "2025-06-12",
+      "lifetime_value": null,
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0067",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.67@example.com ",
+      "signup_date": "2025-07-13",
+      "lifetime_value": "1306.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0068",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.68@example.com ",
+      "signup_date": "2025-08-14",
+      "lifetime_value": "1325.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0069",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.69@example.com ",
+      "signup_date": "2025-09-15",
+      "lifetime_value": "1344.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0070",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.70@example.com ",
+      "signup_date": "2025-10-16",
+      "lifetime_value": "1363.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0071",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.71@example.com ",
+      "signup_date": "2025-11-17",
+      "lifetime_value": "1383.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0072",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.72@example.com ",
+      "signup_date": "2025-12-18",
+      "lifetime_value": "1402.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0073",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.73@example.com ",
+      "signup_date": "2025-01-19",
+      "lifetime_value": "1421.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0074",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.74@example.com ",
+      "signup_date": "2025-02-20",
+      "lifetime_value": "1440.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0075",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.75@example.com ",
+      "signup_date": "2025-02-30",
+      "lifetime_value": "1460.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0076",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.76@example.com ",
+      "signup_date": "2025-04-22",
+      "lifetime_value": "1479.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0077",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.77@example.com ",
+      "signup_date": "2025-05-23",
+      "lifetime_value": "1498.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0078",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.78@example.com ",
+      "signup_date": "2025-06-24",
+      "lifetime_value": "1517.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0079",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.79@example.com ",
+      "signup_date": "2025-07-25",
+      "lifetime_value": null,
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0080",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.80@example.com ",
+      "signup_date": "2025-08-26",
+      "lifetime_value": "1556.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0081",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.81@example.com ",
+      "signup_date": "2025-09-27",
+      "lifetime_value": "1575.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0082",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.82@example.com ",
+      "signup_date": "2025-10-01",
+      "lifetime_value": "USD 120",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0083",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.83@example.com ",
+      "signup_date": "2025-11-02",
+      "lifetime_value": "1614.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0084",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.84@example.com ",
+      "signup_date": "2025-12-03",
+      "lifetime_value": "1633.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0085",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.85@example.com ",
+      "signup_date": "2025-01-04",
+      "lifetime_value": "1652.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0086",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.86@example.com ",
+      "signup_date": "2025-02-05",
+      "lifetime_value": "1671.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0087",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.87@example.com ",
+      "signup_date": "2025-03-06",
+      "lifetime_value": "1691.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0088",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.88@example.com ",
+      "signup_date": "2025-04-07",
+      "lifetime_value": "1710.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0089",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.89@example.com ",
+      "signup_date": "2025-05-08",
+      "lifetime_value": "1729.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0090",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.90@example.com ",
+      "signup_date": "2025-06-09",
+      "lifetime_value": "1748.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0091",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.91@example.com ",
+      "signup_date": "2025-07-10",
+      "lifetime_value": "1768.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0092",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.92@example.com ",
+      "signup_date": "2025-08-11",
+      "lifetime_value": null,
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0093",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.93@example.com ",
+      "signup_date": "2025-09-12",
+      "lifetime_value": "1806.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0094",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.94@example.com ",
+      "signup_date": "2025-10-13",
+      "lifetime_value": "1825.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0095",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.95@example.com ",
+      "signup_date": "2025-11-14",
+      "lifetime_value": "1845.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0096",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.96@example.com ",
+      "signup_date": "2025-12-15",
+      "lifetime_value": "1864.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0097",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.97@example.com ",
+      "signup_date": "2025-01-16",
+      "lifetime_value": "1883.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0098",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.98@example.com ",
+      "signup_date": "2025-02-17",
+      "lifetime_value": "1902.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0099",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.99@example.com ",
+      "signup_date": "2025-03-18",
+      "lifetime_value": "1922.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0001",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.100@example.com ",
+      "signup_date": "2025-04-19",
+      "lifetime_value": "1941.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0101",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.101@example.com ",
+      "signup_date": "2025-05-20",
+      "lifetime_value": "1960.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0102",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.102@example.com ",
+      "signup_date": "2025-06-21",
+      "lifetime_value": "1979.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0103",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.103@example.com ",
+      "signup_date": "2025-07-22",
+      "lifetime_value": "1999.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0104",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.104@example.com ",
+      "signup_date": "2025-08-23",
+      "lifetime_value": "2018.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0105",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.105@example.com ",
+      "signup_date": "2025-09-24",
+      "lifetime_value": null,
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0106",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.106@example.com ",
+      "signup_date": "2025-10-25",
+      "lifetime_value": "2056.75",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0107",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.107@example.com ",
+      "signup_date": "2025-11-26",
+      "lifetime_value": "2076.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0108",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.108@example.com ",
+      "signup_date": "2025-12-27",
+      "lifetime_value": "2095.25",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0109",
+      "full_name": " Amelia Hart ",
+      "email_address": " AMELIA.109@example.com ",
+      "signup_date": "2025-01-01",
+      "lifetime_value": "2114.50",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "",
+      "full_name": " Oliver Chen ",
+      "email_address": " OLIVER.110@example.com ",
+      "signup_date": "2025-02-02",
+      "lifetime_value": "2133.75",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0111",
+      "full_name": " Isla Morgan ",
+      "email_address": " ISLA.111@example.com ",
+      "signup_date": "2025-03-03",
+      "lifetime_value": "2153.00",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0112",
+      "full_name": " Noah Patel ",
+      "email_address": " NOAH.112@example.com ",
+      "signup_date": "2025-04-04",
+      "lifetime_value": "2172.25",
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0113",
+      "full_name": " Mia Thompson ",
+      "email_address": " MIA.113@example.com ",
+      "signup_date": "2025-05-05",
+      "lifetime_value": "2191.50",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0114",
+      "full_name": " Leo Rivera ",
+      "email_address": " LEO.114@example.com ",
+      "signup_date": "2025-06-06",
+      "lifetime_value": "2210.75",
+      "account_status": "hold",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0115",
+      "full_name": " Sofia Kim ",
+      "email_address": " SOFIA.115@example.com ",
+      "signup_date": "2025-07-07",
+      "lifetime_value": "2230.00",
+      "account_status": "enabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0116",
+      "full_name": " Ethan Brooks ",
+      "email_address": " ETHAN.116@example.com ",
+      "signup_date": "2025-08-08",
+      "lifetime_value": "2249.25",
+      "account_status": "disabled",
+      "marketing_opt_in": "no",
+      "country": "ca"
+    },
+    {
+      "customer_id": "CUS-0117",
+      "full_name": " Ava Singh ",
+      "email_address": " AVA.117@example.com ",
+      "signup_date": "2025-09-09",
+      "lifetime_value": "2268.50",
+      "account_status": "hold",
+      "marketing_opt_in": "yes",
+      "country": "us"
+    },
+    {
+      "customer_id": "CUS-0118",
+      "full_name": " Lucas Martin ",
+      "email_address": " LUCAS.118@example.com ",
+      "signup_date": "2025-10-10",
+      "lifetime_value": null,
+      "account_status": "enabled",
+      "marketing_opt_in": "no",
+      "country": "gb"
+    },
+    {
+      "customer_id": "CUS-0119",
+      "full_name": " Chloe Davis ",
+      "email_address": " CHLOE.119@example.com ",
+      "signup_date": "2025-11-11",
+      "lifetime_value": "2307.00",
+      "account_status": "disabled",
+      "marketing_opt_in": "yes",
+      "country": "in"
+    },
+    {
+      "customer_id": "CUS-0120",
+      "full_name": " Arjun Shah ",
+      "email_address": " ARJUN.120@example.com ",
+      "signup_date": "2025-12-12",
+      "lifetime_value": "2326.25",
+      "account_status": "hold",
+      "marketing_opt_in": "maybe",
+      "country": "ca"
+    }
+  ]
+}

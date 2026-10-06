@@ -291,78 +291,84 @@ export function Workbench() {
         />
       )}
       <aside className={`sidebar ${mobileNav ? 'open' : ''}`}>
-        <div className="sidebar-top">
-          <Logo />
-          <button
-            className="icon-button mobile-close"
-            aria-label="Close navigation"
-            onClick={() => setMobileNav(false)}
-          >
-            <X size={19} />
-          </button>
-        </div>
-        <div className="workspace-switch">
-          <span className="workspace-avatar">R</span>
-          <div>
-            <strong>Migration workspace</strong>
-            <span>Competition edition</span>
-          </div>
-          <Badge tone="blue">LOCAL</Badge>
-        </div>
-        <span className="nav-label">WORKSPACE</span>
-        <nav aria-label="Main navigation">
-          {nav.map((n) => (
+        <div
+          className="sidebar-scroll"
+          role="region"
+          aria-label="Workspace navigation and resources"
+        >
+          <div className="sidebar-top">
+            <Logo />
             <button
-              key={n.view}
-              className={`nav-item ${view === n.view ? 'selected' : ''}`}
-              aria-current={view === n.view ? 'page' : undefined}
-              onClick={() => changeView(n.view)}
+              className="icon-button mobile-close"
+              aria-label="Close navigation"
+              onClick={() => setMobileNav(false)}
             >
-              <n.icon size={18} />
-              <span>{n.label}</span>
-              {n.view === 'validation' && run && run.rejected > 0 && (
-                <span className="nav-count">{run.rejected}</span>
-              )}
-              {n.view === 'activity' && (
-                <span className="nav-count neutral">{workspace.events.length}</span>
-              )}
+              <X size={19} />
             </button>
-          ))}
-        </nav>
-        <span className="nav-label resources-label">RESOURCES</span>
-        <button className="nav-item" onClick={() => setDialog('guide')}>
-          <BookOpen size={18} />
-          Submission guide
-          <ChevronRight size={14} className="nav-arrow" />
-        </button>
-        <button className="nav-item" onClick={() => setDialog('settings')}>
-          <Settings2 size={18} />
-          Workspace settings
-        </button>
-        <div className="sidebar-bottom">
-          <div className="guard-card">
-            <span>
-              <ShieldCheck size={17} />
-              <strong>Guardrails active</strong>
-            </span>
-            <p>
-              Inspect. Propose. Verify.
-              <br />
-              You stay in control.
-            </p>
+          </div>
+          <div className="workspace-switch">
+            <span className="workspace-avatar">R</span>
             <div>
-              <i />
-              Read-only planning agent
+              <strong>Migration workspace</strong>
+              <span>Competition edition</span>
+            </div>
+            <Badge tone="blue">LOCAL</Badge>
+          </div>
+          <span className="nav-label">WORKSPACE</span>
+          <nav aria-label="Main navigation">
+            {nav.map((n) => (
+              <button
+                key={n.view}
+                className={`nav-item ${view === n.view ? 'selected' : ''}`}
+                aria-current={view === n.view ? 'page' : undefined}
+                onClick={() => changeView(n.view)}
+              >
+                <n.icon size={18} />
+                <span>{n.label}</span>
+                {n.view === 'validation' && run && run.rejected > 0 && (
+                  <span className="nav-count">{run.rejected}</span>
+                )}
+                {n.view === 'activity' && (
+                  <span className="nav-count neutral">{workspace.events.length}</span>
+                )}
+              </button>
+            ))}
+          </nav>
+          <span className="nav-label resources-label">RESOURCES</span>
+          <button className="nav-item" onClick={() => setDialog('guide')}>
+            <BookOpen size={18} />
+            Submission guide
+            <ChevronRight size={14} className="nav-arrow" />
+          </button>
+          <button className="nav-item" onClick={() => setDialog('settings')}>
+            <Settings2 size={18} />
+            Workspace settings
+          </button>
+          <div className="sidebar-bottom">
+            <div className="guard-card">
+              <span>
+                <ShieldCheck size={17} />
+                <strong>Guardrails active</strong>
+              </span>
+              <p>
+                Inspect. Propose. Verify.
+                <br />
+                You stay in control.
+              </p>
+              <div>
+                <i />
+                Read-only planning agent
+              </div>
             </div>
           </div>
-          <div className="sidebar-user">
-            <span className="user-avatar">Y</span>
-            <div>
-              <strong>Your workspace</strong>
-              <span>Private browser sandbox</span>
-            </div>
-            <LockKeyhole size={15} />
+        </div>
+        <div className="sidebar-user">
+          <span className="user-avatar">Y</span>
+          <div>
+            <strong>Your workspace</strong>
+            <span>Private browser sandbox</span>
           </div>
+          <LockKeyhole size={15} />
         </div>
       </aside>
       <div className="main-shell">

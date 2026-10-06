@@ -159,6 +159,38 @@ test('mobile navigation works and the page has no horizontal overflow', async ({
     true,
   );
 });
+test('sidebar footer remains visible while short viewports scroll navigation', async ({ page }) => {
+  for (const viewport of [
+    { width: 1440, height: 520 },
+    { width: 1024, height: 420 },
+    { width: 390, height: 560 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Migration workbench.' })).toBeVisible();
+    if (viewport.width <= 760) await page.getByRole('button', { name: 'Open navigation' }).click();
+    const footer = page.locator('.sidebar-user');
+    const assertFooter = async () => {
+      const box = await footer.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.y).toBeGreaterThanOrEqual(0);
+      expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+      const scrolling = await page.locator('.sidebar-scroll').boundingBox();
+      expect(scrolling!.y + scrolling!.height).toBeLessThanOrEqual(box!.y + 1);
+      await expect(footer.getByText('Your workspace', { exact: true })).toBeVisible();
+      await expect(footer.getByText('Private browser sandbox')).toBeVisible();
+    };
+    await assertFooter();
+    await page.locator('.sidebar-scroll').evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await assertFooter();
+    await page.getByRole('button', { name: 'Workspace settings', exact: true }).click();
+    await expect(
+      page.getByRole('dialog').getByRole('heading', { name: 'Workspace settings' }),
+    ).toBeVisible();
+  }
+});
 test('workbench has no serious or critical accessibility violations', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Migration workbench.' })).toBeVisible();

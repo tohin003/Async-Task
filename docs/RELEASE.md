@@ -18,12 +18,19 @@ Verified locally on October 6, 2026 with Node.js 24.14.1, Next.js 16.3.8 and Chr
 
 - Strict TypeScript: passed.
 - ESLint, React hooks and JSX accessibility rules: passed with no warnings.
-- **54 unit/integration tests across 6 files: passed.** Covers deterministic transforms, all-row accounting, schema/rule guardrails, bounded inputs, exact approval binding, missing reviewer/validation, zero accepted rows, target conflicts, content drift, rollback, persistence, simultaneous retries, typed categorical and whitespace evidence, required business decisions, public/proxy origin validation, agent tool boundaries, strict final-output schema, bounded repair of invalid provider output and cancellation of a stalled provider.
-- **7 Chromium browser tests against the production build: passed.** Covers the complete lifecycle, rejected-row evidence, retry counts, reload persistence, immutable edits, blocked approval/execution, custom import, 390px mobile navigation/overflow and serious/critical accessibility checks across the workbench, source inspection, validation, field-evidence and approval dialogs, reconciliation and history.
+- **59 unit/integration tests across 7 files: passed.** Covers deterministic transforms, all-row accounting, schema/rule guardrails, bounded inputs, exact approval binding, missing reviewer/validation, zero accepted rows, target conflicts, content drift, rollback, persistence, simultaneous retries, typed categorical and whitespace evidence, required business decisions, public/proxy origin validation, agent tool boundaries, strict final-output schema, bounded repair, cancellation, structured log correlation, sensitive-field exclusion and provider/input failure classification.
+- **8 Chromium browser tests against the production build: passed.** Covers the complete lifecycle, rejected-row evidence, retry counts, reload persistence, immutable edits, blocked approval/execution, custom import, 390px mobile navigation/overflow, short desktop/mobile sidebar visibility and serious/critical accessibility checks across the workbench, source inspection, validation, field-evidence and approval dialogs, reconciliation and history.
 - Production Next.js build: passed. Homepage and icon prerender; planning route remains dynamic.
 - `npm audit`: **0 vulnerabilities** in the installed dependency tree. Vulnerable development lint/test dependencies discovered during implementation were replaced or upgraded.
 - Real screenshots captured from the production application after scripted review, execution, retry, reconciliation and rollback.
 - Actual AgentGuard repository index invoked through the optional isolated development adapter: passed. [Captured evidence](agentguard-inspection.json). Its TypeScript symbol extractor was unavailable, so no TypeScript symbol-verification claim is made.
+- Credential audit: supplied OpenAI/Vercel credentials were absent from the full Git patch history (1.1 MB scanned) and the inspected repository/client assets. Private configuration remains ignored.
+
+## Submission audit and viewport correction
+
+The [requirements audit](SUBMISSION_CHECKLIST.md) maps the supplied screenshot to implementation and evidence. The required root [AGENT_USAGE.md](../AGENT_USAGE.md), [structured-log documentation](LOGGING.md), public [synthetic sample input](../public/examples/customer-migration.json) and [paste-ready reviewer remarks](SUBMISSION_REMARKS.md) are present.
+
+The reported sidebar footer clipping was reproduced on the previous public deployment: at a 520px viewport height the footer ended below 845px. The corrected production build keeps the footer fully inside the viewport and scrolls navigation/resources independently. Regression checks pass at 1440×520, 1024×420 and 390×560. [Actual short-viewport screenshot](screenshots/sidebar-short-viewport.png).
 
 ## Reproduced counts
 

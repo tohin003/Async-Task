@@ -6,6 +6,8 @@ An agentic data migration planner and reconciliation workbench for one bounded d
 
 [Live application](https://relay-migration-workbench.vercel.app) · [Deploy your own](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftohin003%2FAsync-Task&project-name=relay-migration-workbench&repository-name=relay-migration-workbench) · [Competition walkthrough](docs/SUBMISSION.md) · [Architecture](docs/ARCHITECTURE.md) · [Phased plan](docs/PLAN.md)
 
+[Submission requirements audit](docs/SUBMISSION_CHECKLIST.md) · [Agent usage](AGENT_USAGE.md) · [Paste-ready reviewer remarks](docs/SUBMISSION_REMARKS.md) · [Application and AI logs](docs/LOGGING.md)
+
 ![Relay migration workbench](docs/screenshots/workbench.png)
 
 ## Try the complete workflow
@@ -20,6 +22,8 @@ The application opens with a synthetic 120-record customer registry and an expli
 6. Run reconciliation, roll back the owned rows and inspect the preserved **Activity** trail. Export the workspace, target, quarantine or audit report.
 
 **Your mock target is persistent IndexedDB storage in this browser and origin.** Each visitor has an isolated workspace. Refresh preserves it; clearing browser site data removes it. This is an intentional mock, not a shared production database.
+
+Reviewers need no login, account credentials or API key. Download the preloaded [synthetic sample bundle](https://relay-migration-workbench.vercel.app/examples/customer-migration.json), also committed at [public/examples/customer-migration.json](public/examples/customer-migration.json).
 
 ## What is implemented
 
@@ -100,6 +104,8 @@ Field types: `string`, `number`, `integer`, `boolean`, `date`, `email`, `enum`. 
 Supported rules: `trim`, `lowercase`, `uppercase`, `to_number`, `to_integer`, `to_boolean`, `date_iso`, `enum_map`, `default`, `multiply`. Arguments are finite JSON scalars, bounded enum lookup objects or numeric factors. No arbitrary code is accepted. Dates require valid `YYYY-MM-DD`; fractions are never truncated into integers; consent is never inferred. Numbers use JavaScript's finite IEEE-754 representation; this mock is not a financial decimal accounting engine.
 
 ## Agent reliability and AgentGuard
+
+The required [AGENT_USAGE.md](AGENT_USAGE.md) records runtime tools, representative prompts, coding-agent assistance, delegated-work status, important mistakes/rejected suggestions and verification. Application history and plan tool traces persist in IndexedDB. Server planning requests emit correlated JSON logs for rounds, tool outcomes, repairs, successes and failures; [logging details](docs/LOGGING.md) describe access and excluded sensitive data.
 
 The supplied AgentGuard was inspected and its actual repository index was run during development. It is a Python coding-agent guard with a Claude Code adapter, not an LLM or a browser/Vercel SDK. Relay's runtime policies are original TypeScript guards inspired by its evidence-first approach; this project does not claim to bundle or run its daemon in the application.
 

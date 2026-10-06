@@ -20,6 +20,18 @@ try {
     await page.getByRole('button', { name: 'Save preferences' }).click();
   }
   await page.getByText('Live AI planner', { exact: true }).waitFor();
+  const rejectedResponse = await page.request.post(new URL('/api/plan', url).href, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(availability.tokenRequired
+        ? { Authorization: `Bearer ${process.env.PLANNER_ACCESS_TOKEN}` }
+        : {}),
+    },
+    data: '{"invalidFixture":',
+  });
+  expect(rejectedResponse.status()).toBe(400);
+  const rejectedBody = await rejectedResponse.json();
+  expect(rejectedBody.requestId).toBe(rejectedResponse.headers()['x-request-id']);
   const planningStarted = Date.now();
   const pending = page.waitForResponse(
     (response) => response.url().endsWith('/api/plan') && response.request().method() === 'POST',
@@ -27,6 +39,8 @@ try {
   );
   await page.getByRole('button', { name: 'Generate new proposal' }).click();
   const response = await pending;
+  const requestId = response.headers()['x-request-id'];
+  expect(requestId).toMatch(/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/);
   const planningDurationMs = Date.now() - planningStarted;
   const result = await response.json();
   if (!response.ok())
@@ -110,6 +124,8 @@ try {
     provider: result.provider,
     model: availability.model,
     planningDurationMs,
+    requestId,
+    rejectedRequest: { requestId: rejectedBody.requestId, status: rejectedResponse.status() },
     fixture: 'Isolated synthetic customer registry; scripted test approvals only',
     source,
     accepted,
