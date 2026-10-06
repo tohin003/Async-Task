@@ -32,6 +32,8 @@ Only explicitly selected metadata is serialized. Unknown tool names become `unkn
 
 The deployment owner can inspect **Vercel → Project → Logs** or use an authenticated CLI:
 
+[Actual production log evidence](planner-log-verification.json) records the synthetic live request's rounds, tool checks and completion, plus the invalid-inspection request's classified rejection. The request IDs also appear in the [live lifecycle verification report](live-verification.json).
+
 ```bash
 vercel logs --environment production --since 30m --json
 ```

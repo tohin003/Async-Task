@@ -24,7 +24,7 @@ Verified locally on October 6, 2026 with Node.js 24.14.1, Next.js 16.3.8 and Chr
 - `npm audit`: **0 vulnerabilities** in the installed dependency tree. Vulnerable development lint/test dependencies discovered during implementation were replaced or upgraded.
 - Real screenshots captured from the production application after scripted review, execution, retry, reconciliation and rollback.
 - Actual AgentGuard repository index invoked through the optional isolated development adapter: passed. [Captured evidence](agentguard-inspection.json). Its TypeScript symbol extractor was unavailable, so no TypeScript symbol-verification claim is made.
-- Credential audit: supplied OpenAI/Vercel credentials were absent from the full Git patch history (1.1 MB scanned) and the inspected repository/client assets. Private configuration remains ignored.
+- Credential audit: supplied OpenAI/Vercel credentials were absent from the full Git patch history and the inspected repository/client assets. Private configuration remains ignored.
 
 ## Submission audit and viewport correction
 
@@ -47,7 +47,9 @@ Quarantine includes invalid email, impossible date, decimal parsing failure, dup
 
 Relay is published at [relay-migration-workbench.vercel.app](https://relay-migration-workbench.vercel.app). Its Vercel project is connected to GitHub; production and preview provider variables are configured with the API key marked sensitive. Credentials remain excluded from Git and deployment uploads.
 
-The live provider tool loop and HTTP boundary were exercised with controlled provider fixtures and real `gpt-4.1-mini` requests. The final public production test on October 6, 2026 generated a valid proposal in **14.3 seconds**, including a guarded repair. Its isolated synthetic workspace verified **120 source, 100 accepted, 20 quarantined, 100 first inserts, zero retry inserts, 100 retry skips, reload persistence and zero target rows after rollback**. [Sanitized production verification report](live-verification.json). All seven browser acceptance tests also passed against the hosted application, and [GitHub CI passed for the production code commit](https://github.com/tohin003/Async-Task/actions/runs/37455397664).
+The live provider tool loop and HTTP boundary were exercised with controlled provider fixtures and real `gpt-4.1-mini` and `gpt-4.1` requests. The final public production test on October 6, 2026 generated a valid `gpt-4.1` proposal in **18.2 seconds**. Its isolated synthetic workspace verified **120 source, 101 accepted, 19 quarantined, 101 first inserts, zero retry inserts, 101 retry skips, reload persistence and zero target rows after rollback**. [Sanitized production verification report](live-verification.json). All eight browser acceptance tests also passed against the hosted application, and [GitHub CI passed for the production code commit](https://github.com/tohin003/Async-Task/actions/runs/37473944091).
+
+The live draft explicitly requested confirmation of status meanings and a conservative `maybe → false` subscription policy. These conditional rules required fixture-only clarification and final plan approval before execution. The seeded demo instead quarantines the unknown boolean and proposes a missing-spend default; its counts remain 108 accepted and 12 quarantined. [Actual correlated production logs](planner-log-verification.json) confirm inspection/tool completion and HTTP 200, plus the separate invalid-inspection request's HTTP 400 rejection. Prompts, schemas, values, headers and raw errors are absent from those server events.
 
 Live plans can quarantine additional missing values rather than infer defaults; the exact counts depend on the reviewed plan. Scripted test approvals apply only to that synthetic test workspace, not user datasets. Provider availability and latency can change; errors preserve the existing plan and never bypass approval or silently switch providers.
 

@@ -1,0 +1,106 @@
+{
+  "origin": "Actual Vercel production logs; isolated synthetic verification",
+  "events": [
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:40.191Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 0,
+      "event": "request.started"
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:40.202Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 11,
+      "event": "provider.round",
+      "round": 1
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:41.987Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 1796,
+      "event": "tool.completed",
+      "round": 1,
+      "tool": "inspect_schemas",
+      "status": "passed"
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:41.995Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 1804,
+      "event": "tool.completed",
+      "round": 1,
+      "tool": "profile_source",
+      "status": "passed"
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:41.996Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 1805,
+      "event": "tool.completed",
+      "round": 1,
+      "tool": "inspect_transformations",
+      "status": "passed"
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:41.996Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 1805,
+      "event": "provider.round",
+      "round": 2
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:57.964Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 17773,
+      "event": "tool.completed",
+      "round": 2,
+      "tool": "validate_proposal",
+      "status": "passed"
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:57.966Z",
+      "requestId": "ea2ad55e-5f4c-4791-9fa9-aa2c1ad01e9c",
+      "elapsedMs": 17775,
+      "event": "request.completed",
+      "status": 200,
+      "mappings": 8,
+      "questions": 2
+    }
+  ],
+  "rejectedRequestEvents": [
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:39.839Z",
+      "requestId": "458ac7e9-e87c-4b73-be22-2a5b3f9665e6",
+      "elapsedMs": 0,
+      "event": "request.started"
+    },
+    {
+      "version": 1,
+      "service": "relay.planner",
+      "timestamp": "2026-10-06T13:53:39.842Z",
+      "requestId": "458ac7e9-e87c-4b73-be22-2a5b3f9665e6",
+      "elapsedMs": 3,
+      "event": "request.rejected",
+      "status": 400,
+      "code": "INVALID_INSPECTION"
+    }
+  ]
+}
