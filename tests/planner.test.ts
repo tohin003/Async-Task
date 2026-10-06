@@ -112,6 +112,9 @@ describe('bounded planner', () => {
     expect(() => runInspectionTool('validate_proposal', { proposal }, inspection, [])).toThrow(
       'blocking user clarification',
     );
+    expect(() => runInspectionTool('validate_proposal', { proposal }, inspection, [])).toThrow(
+      '"blocking":true,"resolution":null',
+    );
   });
   it('blocks omitted normalization when aggregate evidence requires trim', () => {
     const proposal = structuredClone(demoProposal);

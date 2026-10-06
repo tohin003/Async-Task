@@ -2,6 +2,8 @@
 
 The published application is [relay-migration-workbench.vercel.app](https://relay-migration-workbench.vercel.app). Its Vercel project is connected to `tohin003/Async-Task`; pushes to `main` trigger production builds. OpenAI credentials are configured as sensitive server-only variables for production and preview.
 
+The submission deployment sets `OPENAI_MODEL=gpt-4.1` for review planning. The code fallback for an unset model variable remains `gpt-4.1-mini`. The model is always reported by the availability endpoint and application settings; changing it requires a redeployment.
+
 ## Zero-configuration demo
 
 1. In Vercel, import `https://github.com/tohin003/Async-Task`.

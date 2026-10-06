@@ -202,7 +202,7 @@ function proposalFindings(proposal: Proposal, inspection: Inspection): string[] 
       !proposal.questions.some((q) => q.target === mapping.target && q.blocking)
     )
       findings.push(
-        `${mapping.target}: defaults and changed enum meanings require a blocking user clarification; the agent cannot choose business semantics silently.`,
+        `${mapping.target}: defaults and changed enum meanings require a blocking user clarification. Retain the proposed source and supported pipeline as a conditional draft; nothing is approved or executed. Add a question such as ${JSON.stringify({ id: `confirm_${inspection.targetSchema.fields.findIndex((f) => f.name === mapping.target) + 1}`, target: mapping.target, question: `Do you confirm the proposed transformation semantics for ${mapping.target}?`, blocking: true, resolution: null })}. Do not remove the mapping merely to avoid asking for confirmation.`,
       );
     if (
       !mapping.source &&

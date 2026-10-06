@@ -102,7 +102,7 @@ export async function livePlan(
         signal: controller.signal,
         body: JSON.stringify({
           model,
-          instructions: `${instructions} Inspect whitespace counts and add trim before strict email, date or boolean parsing when needed. Candidate format issue counts are measured after trimming, so they do not establish that untrimmed source values are valid. Enum maps preserve JSON value types: for a boolean target use unquoted true/false outputs or to_boolean, never leave string true/false values.`,
+          instructions: `${instructions} Business decisions do not require dropping mappings. Propose supported rules conditionally, then add the blocking clarification with blocking=true and resolution=null. Use source=null only for genuinely missing or incompatible fields, never just because confirmation is pending. Inspect whitespace counts and add trim before strict email, date or boolean parsing when needed. Candidate format issue counts are measured after trimming, so they do not establish that untrimmed source values are valid. Enum maps preserve JSON value types: for a boolean target use unquoted true/false outputs or to_boolean, never leave string true/false values.`,
           input,
           tools,
           tool_choice: TOOL_NAMES.slice(0, 3).every((name) =>

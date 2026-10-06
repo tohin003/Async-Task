@@ -4,7 +4,7 @@ This document records both the AI workflow inside Relay and the coding-agent ass
 
 ## Application agent
 
-The live planner uses the OpenAI Responses API with the server-configured model (`gpt-4.1-mini` on the submitted deployment). It receives source/target schemas and bounded aggregate profiles. It cannot read raw source rows. The initial seeded proposal and optional demo provider are explicitly labeled deterministic demo output.
+The live planner uses the OpenAI Responses API with the server-configured model (`gpt-4.1` on the submitted deployment; the unconfigured model fallback remains `gpt-4.1-mini`). It receives source/target schemas and bounded aggregate profiles. It cannot read raw source rows. The initial seeded proposal and optional demo provider are explicitly labeled deterministic demo output.
 
 | Tool                      | Input                  | Output and authority                                                                                                     |
 | ------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -69,6 +69,8 @@ AgentGuard's actual Python `RepoIndex` was invoked through the optional developm
 ## How output was verified
 
 A hosted check also caught repeated invalid suggestions exhausting the seven-round budget. The runtime now forces validation after inspection and constrains generated field choices to the actual schemas. Failed requests preserve bounded inspection/validation evidence for the requesting operator; sensitive detail strings remain excluded from server logs. Tool-selection, grounded-schema and budget-exhaustion regressions verify these policies.
+
+A subsequent draft incorrectly removed provided fields when confirmation was pending. Prompt and validation feedback now distinguish conditional proposed rules from approved rules and supply a concrete blocking-question template. Confirmations do not require discarding mappings. Genuinely missing or incompatible fields can still remain unmapped for operator review. The hosted review model was configured to the available full `gpt-4.1` after these observed mini-model planning failures; the same runtime guards and request budgets apply.
 
 Proposals pass Zod contracts, actual-field references, the finite transformation registry and semantic checks. The deterministic engine accounts for every row and retains original/transformed field errors. Tests cover approval binding, unsupported rules, invalid records, target conflicts, concurrent retries, drift and ownership-scoped rollback. Browser tests cover the whole lifecycle, persistence, mobile layout and accessibility.
 
