@@ -1,0 +1,39 @@
+{
+  "url": "https://relay-migration-workbench.vercel.app",
+  "verifiedAt": "2026-10-06T11:19:37.767Z",
+  "provider": "live",
+  "model": "gpt-4.1-mini",
+  "planningDurationMs": 14320,
+  "fixture": "Isolated synthetic customer registry; scripted test approvals only",
+  "source": 120,
+  "accepted": 100,
+  "rejected": 20,
+  "firstInsert": 100,
+  "retryInsert": 0,
+  "retrySkipped": 100,
+  "targetAfterRollback": 0,
+  "reloadPreserved": true,
+  "historyPreserved": true,
+  "tools": [
+    {
+      "tool": "inspect_schemas",
+      "status": "passed"
+    },
+    {
+      "tool": "profile_source",
+      "status": "passed"
+    },
+    {
+      "tool": "inspect_transformations",
+      "status": "passed"
+    },
+    {
+      "tool": "validate_proposal",
+      "status": "blocked"
+    },
+    {
+      "tool": "validate_proposal",
+      "status": "passed"
+    }
+  ]
+}

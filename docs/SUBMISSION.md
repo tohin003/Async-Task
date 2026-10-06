@@ -1,5 +1,7 @@
 # Competition submission — Relay
 
+[Open the live application](https://relay-migration-workbench.vercel.app). The seeded initial proposal is explicitly labeled as a demo. Select **Generate new proposal** to run the real OpenAI agent and inspect its tool evidence. The timed walkthrough below follows the deterministic seeded plan; live proposals can ask different clarification questions and produce different quarantine counts.
+
 ## Problem addressed
 
 A migration proposal is not enough. Operators need to know which records will move, why others fail, who approved the exact rules, whether a retry will duplicate rows, and whether a rollback preserves accountability.

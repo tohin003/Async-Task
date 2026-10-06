@@ -4,13 +4,15 @@ Verified locally on October 6, 2026 with Node.js 24.14.1, Next.js 16.3.8 and Chr
 
 ## Phased delivery
 
-| Phase                        | Result                                                                                   | Commit                                     |
-| ---------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------ |
-| 1 — foundation               | Architecture, invariants, bounded scope and deployment foundation                        | `bc029a9`                                  |
-| 2 — deterministic domain     | Transformations, validation, versioning, approval and atomic mock lifecycle              | `c451da3`                                  |
-| 3 — planning agent           | Read-only tools, live provider loop, proposal guards and demo provider                   | `9fd6144`                                  |
-| 4 — workbench                | Mapping review, import, validation, approval, target, reconciliation and history         | `55c34ad`                                  |
-| 5 — hardening and submission | Adversarial tests, browser verification, accessibility, CI, screenshots and release docs | See final submission commit in Git history |
+| Phase                        | Result                                                                                                    | Commit    |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- | --------- |
+| 1 — foundation               | Architecture, invariants, bounded scope and deployment foundation                                         | `bc029a9` |
+| 2 — deterministic domain     | Transformations, validation, versioning, approval and atomic mock lifecycle                               | `c451da3` |
+| 3 — planning agent           | Read-only tools, live provider loop, proposal guards and demo provider                                    | `9fd6144` |
+| 4 — workbench                | Mapping review, import, validation, approval, target, reconciliation and history                          | `55c34ad` |
+| 5 — hardening and submission | Adversarial tests, browser verification, accessibility, CI, screenshots and release docs                  | `3b6d96d` |
+| 6 — live deployment          | Evidence-grounded live planning, public-origin handling and Vercel deployment                             | `d6db93d` |
+| 7 — production reliability   | Strict output schema, bounded repair, typed categorical guards, whitespace evidence and aligned deadlines | `9df888b` |
 
 ## Executed checks
 
@@ -38,7 +40,9 @@ Quarantine includes invalid email, impossible date, decimal parsing failure, dup
 
 Relay is published at [relay-migration-workbench.vercel.app](https://relay-migration-workbench.vercel.app). Its Vercel project is connected to GitHub; production and preview provider variables are configured with the API key marked sensitive. Credentials remain excluded from Git and deployment uploads.
 
-The live provider tool loop and HTTP boundary were exercised with controlled provider fixtures and a real `gpt-4.1-mini` request. The isolated synthetic live test verified 120 source records, 100 accepted, 20 quarantined, 100 first inserts, zero retry inserts, 100 retry skips, reload persistence and zero target rows after rollback. Live plans can quarantine additional missing values rather than infer defaults; the exact counts depend on the reviewed plan. Scripted test approvals apply only to that synthetic test workspace, not user datasets.
+The live provider tool loop and HTTP boundary were exercised with controlled provider fixtures and real `gpt-4.1-mini` requests. The final public production test on October 6, 2026 generated a valid proposal in **14.3 seconds**, including a guarded repair. Its isolated synthetic workspace verified **120 source, 100 accepted, 20 quarantined, 100 first inserts, zero retry inserts, 100 retry skips, reload persistence and zero target rows after rollback**. [Sanitized production verification report](live-verification.json). All seven browser acceptance tests also passed against the hosted application, and [GitHub CI passed for the production code commit](https://github.com/tohin003/Async-Task/actions/runs/37455397664).
+
+Live plans can quarantine additional missing values rather than infer defaults; the exact counts depend on the reviewed plan. Scripted test approvals apply only to that synthetic test workspace, not user datasets. Provider availability and latency can change; errors preserve the existing plan and never bypass approval or silently switch providers.
 
 ## Practical limits
 

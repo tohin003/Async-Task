@@ -72,7 +72,7 @@ To enable the real AI planner, configure server-only variables before redeployin
 
 When an unprotected live endpoint is available, Relay selects the live planner automatically; **Generate new proposal** starts a real request. The initial seeded proposal remains labeled as a demo. You can switch providers in **Workspace settings**. If access protection is configured, select the live provider and enter its token in the app; the token is held only in memory. Source records are never sent to the planner. Live calls send schema definitions and aggregate field profiles, so avoid confidential information in schema descriptions. Provider errors are surfaced explicitly and never silently relabeled as demo results.
 
-See [deployment details](docs/DEPLOYMENT.md). The live provider was verified with a real OpenAI request and the complete synthetic migration lifecycle. To repeat the opt-in paid-provider check against a configured deployment, run `LIVE_CHECK_URL=https://your-deployment.vercel.app npm run test:live`.
+See [deployment details](docs/DEPLOYMENT.md) and the [actual production verification report](docs/live-verification.json). The live provider was verified with a real OpenAI request and the complete synthetic migration lifecycle. To repeat the opt-in paid-provider check against a configured deployment, run `LIVE_CHECK_URL=https://your-deployment.vercel.app npm run test:live`.
 
 ## Bring your own dataset
 
