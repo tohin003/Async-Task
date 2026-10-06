@@ -28,6 +28,7 @@ const profileSchema = z
     missing: z.number().int().min(0).max(LIMITS.records),
     distinct: z.number().int().min(0).max(LIMITS.records),
     invalid: z.number().int().min(0).max(LIMITS.records),
+    whitespace: z.number().int().min(0).max(LIMITS.records),
     categories: z
       .array(
         z
@@ -72,6 +73,7 @@ export const inspectionSchema = z
           p.missing > p.total ||
           p.distinct > p.total ||
           p.invalid > p.total ||
+          p.whitespace > (p.types.string ?? 0) ||
           p.missing +
             p.uncategorized +
             p.categories.reduce((sum, category) => sum + category.count, 0) !==
@@ -156,6 +158,7 @@ export function inspectDataset(d: Dataset): Inspection {
         missing: values.filter((v) => v === null || v === '').length,
         distinct: new Set(values.map(fingerprint)).size,
         invalid: values.filter((v) => validateValue(v, f) !== null).length,
+        whitespace: values.filter((v) => typeof v === 'string' && v !== v.trim()).length,
         categories: [...categories.values()],
         uncategorized:
           values.filter((v) => v !== null && v !== '').length -
@@ -180,6 +183,14 @@ function proposalFindings(proposal: Proposal, inspection: Inspection): string[] 
   for (const mapping of proposal.mappings) {
     const field = inspection.targetSchema.fields.find((f) => f.name === mapping.target)!;
     const profile = inspection.profiles.find((p) => p.field === mapping.source);
+    if (
+      profile?.whitespace &&
+      ['email', 'date', 'boolean'].includes(field.type) &&
+      !mapping.transforms.some((rule) => rule.op === 'trim' || rule.op === 'enum_map')
+    )
+      findings.push(
+        `${mapping.target}: ${profile.whitespace} source strings contain surrounding whitespace. Add trim before strict ${field.type} parsing/validation; candidateIssues counts are measured after trimming.`,
+      );
     const businessDecision = mapping.transforms.some(
       (rule) =>
         rule.op === 'default' ||
@@ -200,7 +211,7 @@ function proposalFindings(proposal: Proposal, inspection: Inspection): string[] 
       !proposal.questions.some((q) => q.target === mapping.target && q.blocking)
     )
       findings.push(`${mapping.target}: a missing required source needs a blocking clarification.`);
-    if (field.type === 'enum' && profile?.categories.length) {
+    if (profile?.categories.length) {
       const anyValid = profile.categories.some((category) => {
         try {
           const value = mapping.transforms.reduce(
@@ -214,7 +225,7 @@ function proposalFindings(proposal: Proposal, inspection: Inspection): string[] 
       });
       if (!anyValid)
         findings.push(
-          `${mapping.target}: none of the observed categorical values pass this pipeline. Map the observed source labels from profile_source to the target enum, or explicitly leave the source null and ask a blocking clarification.`,
+          `${mapping.target}: none of the observed categorical values pass this pipeline for target type ${field.type}. Enum maps preserve JSON value types: boolean outputs must be unquoted true/false, or use to_boolean after the lookup. Map the observed source labels from profile_source to valid typed outputs, or explicitly leave the source null and ask a blocking clarification.`,
         );
     }
   }
@@ -280,7 +291,7 @@ export function runInspectionTool(
     return {
       recordCount: inspection.recordCount,
       profiles: inspection.profiles,
-      note: 'candidateIssues counts nonmissing values failing common target format/parsing checks after trimming. categories contains aggregate counts only for declared enums, booleans and recognized status/consent vocabulary. Other values are counted as uncategorized; no names, IDs or contact values are disclosed. These are inspection hints, not a dry run.',
+      note: 'whitespace counts strings needing trim. candidateIssues counts nonmissing values failing common target format/parsing checks AFTER trimming; it does not prove raw values are valid. categories contains aggregate counts only for declared enums, booleans and recognized status/consent vocabulary. Other values are counted as uncategorized; no names, IDs or contact values are disclosed. These are inspection hints, not a dry run.',
     };
   }
   trace.push({
@@ -291,7 +302,8 @@ export function runInspectionTool(
   return {
     transformations: TRANSFORMATIONS,
     arguments: {
-      enum_map: 'JSON object with at most 30 scalar entries',
+      enum_map:
+        'JSON object with at most 30 scalar entries. Output types are preserved: use unquoted true/false for booleans and numeric JSON values for numbers.',
       default: 'JSON scalar',
       multiply: 'finite numeric string',
       other: null,

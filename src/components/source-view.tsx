@@ -106,6 +106,7 @@ export function SourceView({ dataset, onImport }: { dataset: Dataset; onImport: 
                 <th>Field</th>
                 <th>Records</th>
                 <th>Missing</th>
+                <th>Needs trim</th>
                 <th>Distinct values</th>
                 <th>Source schema issues</th>
                 <th>Observed types</th>
@@ -119,6 +120,7 @@ export function SourceView({ dataset, onImport }: { dataset: Dataset; onImport: 
                   </td>
                   <td>{p.total}</td>
                   <td className={p.missing ? 'text-amber' : 'muted'}>{p.missing}</td>
+                  <td className={p.whitespace ? 'text-amber' : 'muted'}>{p.whitespace}</td>
                   <td>{p.distinct}</td>
                   <td className={p.invalid ? 'text-amber' : 'muted'}>{p.invalid}</td>
                   <td className="muted">

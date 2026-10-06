@@ -33,6 +33,7 @@ import {
 import { LIMITS, type Bundle, type Mapping, type Proposal, type Workspace } from '@/lib/contracts';
 import { mappingLabel, proposalOf, validateProposal } from '@/lib/engine';
 import { demoPlan, inspectDataset } from '@/lib/planner';
+import { PLANNER_REQUEST_TIMEOUT_MS } from '@/lib/planner-limits';
 import {
   dispatch,
   loadWorkspace,
@@ -169,7 +170,7 @@ export function Workbench() {
                   ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 },
                 body: JSON.stringify(inspectDataset(workspace.dataset)),
-                signal: AbortSignal.timeout(60_000),
+                signal: AbortSignal.timeout(PLANNER_REQUEST_TIMEOUT_MS),
               });
               const body = await response.json();
               if (!response.ok) throw new Error(body.error || 'Live planning failed.');

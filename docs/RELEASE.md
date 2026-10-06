@@ -16,7 +16,7 @@ Verified locally on October 6, 2026 with Node.js 24.14.1, Next.js 16.3.8 and Chr
 
 - Strict TypeScript: passed.
 - ESLint, React hooks and JSX accessibility rules: passed with no warnings.
-- **49 unit/integration tests across 6 files: passed.** Covers deterministic transforms, all-row accounting, schema/rule guardrails, bounded inputs, exact approval binding, missing reviewer/validation, zero accepted rows, target conflicts, content drift, rollback, persistence, simultaneous retries, categorical evidence, required business decisions, public/proxy origin validation, agent tool boundaries and live API request boundaries.
+- **54 unit/integration tests across 6 files: passed.** Covers deterministic transforms, all-row accounting, schema/rule guardrails, bounded inputs, exact approval binding, missing reviewer/validation, zero accepted rows, target conflicts, content drift, rollback, persistence, simultaneous retries, typed categorical and whitespace evidence, required business decisions, public/proxy origin validation, agent tool boundaries, strict final-output schema, bounded repair of invalid provider output and cancellation of a stalled provider.
 - **7 Chromium browser tests against the production build: passed.** Covers the complete lifecycle, rejected-row evidence, retry counts, reload persistence, immutable edits, blocked approval/execution, custom import, 390px mobile navigation/overflow and serious/critical accessibility checks across the workbench, source inspection, validation, field-evidence and approval dialogs, reconciliation and history.
 - Production Next.js build: passed. Homepage and icon prerender; planning route remains dynamic.
 - `npm audit`: **0 vulnerabilities** in the installed dependency tree. Vulnerable development lint/test dependencies discovered during implementation were replaced or upgraded.
@@ -36,7 +36,7 @@ Quarantine includes invalid email, impossible date, decimal parsing failure, dup
 
 ## Deployment and provider status
 
-The initial submission was Vercel-ready but unpublished because its available credentials were rejected. The owner subsequently authorized a valid credential source and provided the OpenAI key. Relay's Vercel project is connected to GitHub; production and preview provider variables are configured with the API key marked sensitive. Credentials remain excluded from Git and deployment uploads.
+Relay is published at [relay-migration-workbench.vercel.app](https://relay-migration-workbench.vercel.app). Its Vercel project is connected to GitHub; production and preview provider variables are configured with the API key marked sensitive. Credentials remain excluded from Git and deployment uploads.
 
 The live provider tool loop and HTTP boundary were exercised with controlled provider fixtures and a real `gpt-4.1-mini` request. The isolated synthetic live test verified 120 source records, 100 accepted, 20 quarantined, 100 first inserts, zero retry inserts, 100 retry skips, reload persistence and zero target rows after rollback. Live plans can quarantine additional missing values rather than infer defaults; the exact counts depend on the reviewed plan. Scripted test approvals apply only to that synthetic test workspace, not user datasets.
 

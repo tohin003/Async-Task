@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import { proposalSchema, type ToolTrace } from './contracts';
 import { runInspectionTool, TOOL_NAMES, validateLiveResult, type Inspection } from './planner';
+import { PLANNER_DEADLINE_MS } from './planner-limits';
 
 const noArgs = { type: 'object', properties: {}, required: [], additionalProperties: false };
+const proposalJsonSchema = z.toJSONSchema(proposalSchema, { target: 'draft-7' });
 export const PLANNER_TOOLS = TOOL_NAMES.map((name) => ({
   type: 'function',
   name,
@@ -19,7 +21,7 @@ export const PLANNER_TOOLS = TOOL_NAMES.map((name) => ({
     name === 'validate_proposal'
       ? {
           type: 'object',
-          properties: { proposal: z.toJSONSchema(proposalSchema, { target: 'draft-7' }) },
+          properties: { proposal: proposalJsonSchema },
           required: ['proposal'],
           additionalProperties: false,
         }
@@ -55,7 +57,7 @@ export async function livePlan(
     },
   ];
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 45_000);
+  const timer = setTimeout(() => controller.abort(), PLANNER_DEADLINE_MS);
   let calls = 0;
   try {
     for (let round = 0; round < 7; round++) {
@@ -65,11 +67,19 @@ export async function livePlan(
         signal: controller.signal,
         body: JSON.stringify({
           model,
-          instructions,
+          instructions: `${instructions} Inspect whitespace counts and add trim before strict email, date or boolean parsing when needed. Candidate format issue counts are measured after trimming, so they do not establish that untrimmed source values are valid. Enum maps preserve JSON value types: for a boolean target use unquoted true/false outputs or to_boolean, never leave string true/false values.`,
           input,
           tools: PLANNER_TOOLS,
           parallel_tool_calls: true,
           max_output_tokens: 6000,
+          text: {
+            format: {
+              type: 'json_schema',
+              name: 'migration_proposal',
+              schema: proposalJsonSchema,
+              strict: true,
+            },
+          },
           store: false,
         }),
       });
@@ -131,8 +141,24 @@ export async function livePlan(
       for (const required of TOOL_NAMES.slice(0, 3))
         if (!trace.some((t) => t.tool === required && t.status === 'passed'))
           throw new Error(`Planner skipped required evidence tool ${required}.`);
-      const proposal = validateLiveResult(JSON.parse(text), inspection, trace);
-      return { proposal, trace, provider: 'live' as const };
+      try {
+        const decoded: unknown = JSON.parse(text);
+        // Some Responses-compatible providers emit the exact function-argument wrapper.
+        const wrapped = z.object({ proposal: proposalSchema }).strict().safeParse(decoded);
+        const proposal = validateLiveResult(
+          wrapped.success ? wrapped.data.proposal : decoded,
+          inspection,
+          trace,
+        );
+        return { proposal, trace, provider: 'live' as const };
+      } catch (error) {
+        const reason =
+          error instanceof Error ? error.message.slice(0, 2000) : 'Invalid proposal format';
+        input.push({
+          role: 'user',
+          content: `Your final proposal failed application validation: ${reason}. Repair it using the existing inspection evidence and submit it with validate_proposal. Do not resolve any user decision.`,
+        });
+      }
     }
     throw new Error('Planner exhausted its seven-round budget without a valid proposal.');
   } finally {

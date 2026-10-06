@@ -3,9 +3,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { inspectionSchema } from '@/lib/planner';
 import { livePlan } from '@/lib/live-planner';
 import { hasAllowedOrigin } from '@/lib/request-origin';
+import { PLANNER_DEADLINE_MS } from '@/lib/planner-limits';
 
 export const runtime = 'nodejs';
-export const maxDuration = 60;
+export const maxDuration = 120;
 const json = (body: unknown, status = 200) =>
   NextResponse.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
 export async function GET() {
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
       return json({ error: 'Inspection payload must be valid JSON.' }, 400);
     const message =
       error instanceof Error && error.name === 'AbortError'
-        ? 'Planning exceeded the 45-second deadline. Try again or select demo planning.'
+        ? `Planning exceeded the ${PLANNER_DEADLINE_MS / 1000}-second deadline. Try again or select demo planning.`
         : error instanceof Error
           ? error.message
           : 'Planning failed.';

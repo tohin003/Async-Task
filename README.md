@@ -4,7 +4,7 @@
 
 An agentic data migration planner and reconciliation workbench for one bounded dataset. Relay makes the decisions, evidence and recovery path visible: inspect schemas, review a proposed mapping, validate every record, explicitly approve, migrate, reconcile, retry safely and roll back.
 
-[Deploy on Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftohin003%2FAsync-Task&project-name=relay-migration-workbench&repository-name=relay-migration-workbench) · [Competition walkthrough](docs/SUBMISSION.md) · [Architecture](docs/ARCHITECTURE.md) · [Phased plan](docs/PLAN.md)
+[Live application](https://relay-migration-workbench.vercel.app) · [Deploy your own](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ftohin003%2FAsync-Task&project-name=relay-migration-workbench&repository-name=relay-migration-workbench) · [Competition walkthrough](docs/SUBMISSION.md) · [Architecture](docs/ARCHITECTURE.md) · [Phased plan](docs/PLAN.md)
 
 ![Relay migration workbench](docs/screenshots/workbench.png)
 
@@ -70,7 +70,7 @@ To enable the real AI planner, configure server-only variables before redeployin
 | `OPENAI_MODEL`         | Responses-compatible tool-calling model; default `gpt-4.1-mini`                           |
 | `PLANNER_ACCESS_TOKEN` | Optional bearer secret restricting paid live requests; recommended for public deployments |
 
-Select **Workspace settings → Live OpenAI agent** after deployment. If access protection is configured, enter its token in the app; the token is held only in memory. Source records are never sent to the planner. Live calls send schema definitions and aggregate field profiles, so avoid confidential information in schema descriptions. Provider errors are surfaced explicitly and never silently relabeled as demo results.
+When an unprotected live endpoint is available, Relay selects the live planner automatically; **Generate new proposal** starts a real request. The initial seeded proposal remains labeled as a demo. You can switch providers in **Workspace settings**. If access protection is configured, select the live provider and enter its token in the app; the token is held only in memory. Source records are never sent to the planner. Live calls send schema definitions and aggregate field profiles, so avoid confidential information in schema descriptions. Provider errors are surfaced explicitly and never silently relabeled as demo results.
 
 See [deployment details](docs/DEPLOYMENT.md). The live provider was verified with a real OpenAI request and the complete synthetic migration lifecycle. To repeat the opt-in paid-provider check against a configured deployment, run `LIVE_CHECK_URL=https://your-deployment.vercel.app npm run test:live`.
 
@@ -129,7 +129,7 @@ flowchart LR
   K --> L[Preserved audit history]
 ```
 
-The agent has four tools: `inspect_schemas`, `profile_source`, `inspect_transformations`, `validate_proposal`. It has no approval or target-write capability. The live loop is limited to 7 rounds, 12 calls and 45 seconds. Both live and demo proposals pass schema and semantic validation. Execution recomputes the deterministic result and verifies approval before writing.
+The agent has four tools: `inspect_schemas`, `profile_source`, `inspect_transformations`, `validate_proposal`. It has no approval or target-write capability. The live loop is limited to 7 rounds, 12 calls and 90 seconds. Strict output schemas and bounded repair handle invalid provider proposals. Both live and demo proposals pass schema and semantic validation. Execution recomputes the deterministic result and verifies approval before writing.
 
 Reviewer names are local attestations, not authenticated enterprise identities. Hash chaining detects accidental history damage; a user who controls browser storage can alter it. The scope excludes production database access, arbitrary transformation code, distributed migration and live cloud connectors.
 

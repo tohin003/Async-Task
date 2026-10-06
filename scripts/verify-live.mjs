@@ -20,15 +20,19 @@ try {
     await page.getByRole('button', { name: 'Save preferences' }).click();
   }
   await page.getByText('Live AI planner', { exact: true }).waitFor();
+  const planningStarted = Date.now();
   const pending = page.waitForResponse(
     (response) => response.url().endsWith('/api/plan') && response.request().method() === 'POST',
-    { timeout: 65_000 },
+    { timeout: 125_000 },
   );
   await page.getByRole('button', { name: 'Generate new proposal' }).click();
   const response = await pending;
+  const planningDurationMs = Date.now() - planningStarted;
   const result = await response.json();
   if (!response.ok())
     throw new Error(`Live planning failed (${response.status()}): ${result.error}`);
+  await mkdir('test-results', { recursive: true });
+  await writeFile('test-results/live-proposal.json', JSON.stringify(result, null, 2) + '\n');
   expect(result.provider).toBe('live');
   await expect(page.getByLabel('Plan version')).toHaveValue('plan-2');
   if (result.proposal.questions.length) {
@@ -53,8 +57,19 @@ try {
   const source = Number(counts[1]),
     accepted = Number(counts[2]),
     rejected = Number(counts[3]);
+  if (accepted === 0) {
+    await page
+      .getByRole('button', { name: /Inspect source row/ })
+      .first()
+      .click();
+    await writeFile(
+      'test-results/live-failure-evidence.txt',
+      await page.getByRole('dialog').innerText(),
+    );
+  }
   expect(source).toBe(120);
-  expect(accepted).toBeGreaterThan(0);
+  expect(accepted).toBeGreaterThanOrEqual(100);
+  expect(accepted).toBeLessThanOrEqual(108);
   expect(accepted + rejected).toBe(source);
   await page.getByRole('button', { name: 'Review & approve' }).click();
   await page.getByRole('dialog').getByLabel('Reviewer name').fill('Synthetic deployment test');
@@ -94,6 +109,7 @@ try {
     verifiedAt: new Date().toISOString(),
     provider: result.provider,
     model: availability.model,
+    planningDurationMs,
     fixture: 'Isolated synthetic customer registry; scripted test approvals only',
     source,
     accepted,
