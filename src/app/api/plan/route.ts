@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { timingSafeEqual } from 'node:crypto';
 import { inspectionSchema } from '@/lib/planner';
 import { livePlan } from '@/lib/live-planner';
+import { hasAllowedOrigin } from '@/lib/request-origin';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -24,8 +25,7 @@ export async function POST(request: Request) {
       503,
     );
   // Restrict browser requests to this deployment; the optional token protects paid API access.
-  const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin)
+  if (!hasAllowedOrigin(request))
     return json({ error: 'Cross-origin planning requests are blocked.' }, 403);
   if (process.env.PLANNER_ACCESS_TOKEN) {
     const supplied = Buffer.from(

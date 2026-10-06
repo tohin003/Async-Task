@@ -4,6 +4,7 @@ import {
   LIMITS,
   schemaSchema,
   proposalSchema,
+  scalarSchema,
   type Dataset,
   type Plan,
   type Proposal,
@@ -27,6 +28,14 @@ const profileSchema = z
     missing: z.number().int().min(0).max(LIMITS.records),
     distinct: z.number().int().min(0).max(LIMITS.records),
     invalid: z.number().int().min(0).max(LIMITS.records),
+    categories: z
+      .array(
+        z
+          .object({ value: scalarSchema, count: z.number().int().min(1).max(LIMITS.records) })
+          .strict(),
+      )
+      .max(16),
+    uncategorized: z.number().int().min(0).max(LIMITS.records),
     candidateIssues: z
       .object({
         email: z.number().int().min(0).max(LIMITS.records),
@@ -63,6 +72,12 @@ export const inspectionSchema = z
           p.missing > p.total ||
           p.distinct > p.total ||
           p.invalid > p.total ||
+          p.missing +
+            p.uncategorized +
+            p.categories.reduce((sum, category) => sum + category.count, 0) !==
+            p.total ||
+          new Set(p.categories.map((category) => fingerprint(category.value))).size !==
+            p.categories.length ||
           Object.values(p.candidateIssues).some((count) => count > p.total) ||
           Object.values(p.types).reduce((a, b) => a + (b ?? 0), 0) !== p.total,
       )
@@ -73,6 +88,26 @@ export const inspectionSchema = z
       });
   });
 export type Inspection = z.infer<typeof inspectionSchema>;
+const categoricalVocabulary = new Set([
+  'enabled',
+  'disabled',
+  'hold',
+  'active',
+  'inactive',
+  'paused',
+  'pending',
+  'archived',
+  'open',
+  'closed',
+  'yes',
+  'no',
+  'true',
+  'false',
+  '1',
+  '0',
+  'maybe',
+  'unknown',
+]);
 export function inspectDataset(d: Dataset): Inspection {
   return {
     datasetId: d.id,
@@ -83,9 +118,25 @@ export function inspectDataset(d: Dataset): Inspection {
     profiles: d.sourceSchema.fields.map((f) => {
       const values = d.records.map((r) => r[f.name] ?? null);
       const types: Record<string, number> = {};
+      const categories = new Map<string, { value: (typeof values)[number]; count: number }>();
+      const categoricalRole = /(?:^|_)(?:status|state|opt_in|consent|enabled|active)(?:_|$)/i.test(
+        f.name,
+      );
       for (const v of values) {
         const t = v === null ? 'null' : typeof v;
         types[t] = (types[t] ?? 0) + 1;
+        const safeCategory =
+          typeof v === 'boolean' ||
+          (typeof v === 'string' &&
+            v.length <= 100 &&
+            ((f.type === 'enum' && f.values?.includes(v)) ||
+              (categoricalRole && categoricalVocabulary.has(v.trim().toLowerCase()))));
+        if (v !== null && v !== '' && safeCategory) {
+          const key = fingerprint(v);
+          const category = categories.get(key);
+          if (category) category.count++;
+          else if (categories.size < 16) categories.set(key, { value: v, count: 1 });
+        }
       }
       const present = values
         .filter((v) => v !== null && v !== '')
@@ -105,6 +156,10 @@ export function inspectDataset(d: Dataset): Inspection {
         missing: values.filter((v) => v === null || v === '').length,
         distinct: new Set(values.map(fingerprint)).size,
         invalid: values.filter((v) => validateValue(v, f) !== null).length,
+        categories: [...categories.values()],
+        uncategorized:
+          values.filter((v) => v !== null && v !== '').length -
+          [...categories.values()].reduce((sum, category) => sum + category.count, 0),
         candidateIssues: {
           email: present.filter((v) =>
             validateValue(v, { name: f.name, type: 'email', required: false, unique: false }),
@@ -119,6 +174,51 @@ export function inspectDataset(d: Dataset): Inspection {
       };
     }),
   };
+}
+function proposalFindings(proposal: Proposal, inspection: Inspection): string[] {
+  const findings: string[] = [];
+  for (const mapping of proposal.mappings) {
+    const field = inspection.targetSchema.fields.find((f) => f.name === mapping.target)!;
+    const profile = inspection.profiles.find((p) => p.field === mapping.source);
+    const businessDecision = mapping.transforms.some(
+      (rule) =>
+        rule.op === 'default' ||
+        (rule.op === 'enum_map' &&
+          Object.entries(JSON.parse(rule.arg!)).some(([key, value]) => key !== String(value))),
+    );
+    if (
+      businessDecision &&
+      !proposal.questions.some((q) => q.target === mapping.target && q.blocking)
+    )
+      findings.push(
+        `${mapping.target}: defaults and changed enum meanings require a blocking user clarification; the agent cannot choose business semantics silently.`,
+      );
+    if (
+      !mapping.source &&
+      field.required &&
+      !mapping.transforms.some((t) => t.op === 'default') &&
+      !proposal.questions.some((q) => q.target === mapping.target && q.blocking)
+    )
+      findings.push(`${mapping.target}: a missing required source needs a blocking clarification.`);
+    if (field.type === 'enum' && profile?.categories.length) {
+      const anyValid = profile.categories.some((category) => {
+        try {
+          const value = mapping.transforms.reduce(
+            (v, rule) => applyTransform(v, rule),
+            category.value,
+          );
+          return validateValue(value, field) === null;
+        } catch {
+          return false;
+        }
+      });
+      if (!anyValid)
+        findings.push(
+          `${mapping.target}: none of the observed categorical values pass this pipeline. Map the observed source labels from profile_source to the target enum, or explicitly leave the source null and ask a blocking clarification.`,
+        );
+    }
+  }
+  return findings;
 }
 export const TOOL_NAMES = [
   'inspect_schemas',
@@ -143,6 +243,8 @@ export function runInspectionTool(
     if (!parsed.success) return blocked('Proposal arguments do not satisfy the bounded contract');
     try {
       validateProposal(parsed.data.proposal, inspection);
+      const findings = proposalFindings(parsed.data.proposal, inspection);
+      if (findings.length) throw new DomainError('UNSUPPORTED_ASSUMPTION', findings.join(' '));
     } catch (e) {
       return blocked(e instanceof Error ? e.message : 'Proposal failed semantic validation');
     }
@@ -178,7 +280,7 @@ export function runInspectionTool(
     return {
       recordCount: inspection.recordCount,
       profiles: inspection.profiles,
-      note: 'candidateIssues counts nonmissing values failing common target format/parsing checks after trimming. These are inspection hints; execute only the reviewed mapping pipeline.',
+      note: 'candidateIssues counts nonmissing values failing common target format/parsing checks after trimming. categories contains aggregate counts only for declared enums, booleans and recognized status/consent vocabulary. Other values are counted as uncategorized; no names, IDs or contact values are disclosed. These are inspection hints, not a dry run.',
     };
   }
   trace.push({

@@ -72,7 +72,7 @@ To enable the real AI planner, configure server-only variables before redeployin
 
 Select **Workspace settings → Live OpenAI agent** after deployment. If access protection is configured, enter its token in the app; the token is held only in memory. Source records are never sent to the planner. Live calls send schema definitions and aggregate field profiles, so avoid confidential information in schema descriptions. Provider errors are surfaced explicitly and never silently relabeled as demo results.
 
-See [deployment details](docs/DEPLOYMENT.md). Live provider contracts and the tool loop are tested with controlled responses; an actual paid model call requires your configured key.
+See [deployment details](docs/DEPLOYMENT.md). The live provider was verified with a real OpenAI request and the complete synthetic migration lifecycle. To repeat the opt-in paid-provider check against a configured deployment, run `LIVE_CHECK_URL=https://your-deployment.vercel.app npm run test:live`.
 
 ## Bring your own dataset
 

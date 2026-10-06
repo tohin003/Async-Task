@@ -33,6 +33,23 @@ describe('live API boundary', () => {
     expect((await POST(request(inspection, { origin: 'https://other.example' }))).status).toBe(403);
     expect((await POST(request(inspection, { authorization: 'Bearer wrong' }))).status).toBe(401);
   });
+  it('accepts the public host when Next runs behind a proxy or a local hostname alias', async () => {
+    vi.stubEnv('OPENAI_API_KEY', 'test');
+    vi.stubEnv('PLANNER_ACCESS_TOKEN', '');
+    const response = await POST(
+      new Request('http://localhost:3000/api/plan', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          origin: 'https://relay.example',
+          host: 'relay.example',
+          'x-forwarded-proto': 'https',
+        },
+        body: JSON.stringify(inspection),
+      }),
+    );
+    expect(response.status).toBe(200);
+  });
   it('rejects raw records, malformed JSON, large payloads and wrong media types', async () => {
     vi.stubEnv('OPENAI_API_KEY', 'test');
     vi.stubEnv('PLANNER_ACCESS_TOKEN', '');

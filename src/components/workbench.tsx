@@ -84,7 +84,10 @@ export function Workbench() {
     const stop = watchWorkspace(refresh);
     fetch('/api/plan')
       .then((r) => r.json())
-      .then(setConfig)
+      .then((configuration) => {
+        setConfig(configuration);
+        if (configuration.liveAvailable && !configuration.tokenRequired) setProvider('live');
+      })
       .catch(() => {});
     const onFocus = () => refresh();
     window.addEventListener('focus', onFocus);

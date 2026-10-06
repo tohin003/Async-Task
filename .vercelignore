@@ -1,0 +1,11 @@
+.env*
+.git/
+node_modules/
+docs/
+e2e/
+tests/
+scripts/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo

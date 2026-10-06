@@ -86,6 +86,30 @@ describe('bounded planner', () => {
     invalid.profiles[0].total = 999;
     expect(inspectionSchema.safeParse(invalid).success).toBe(false);
   });
+  it('provides safe categorical evidence without names or contact values', () => {
+    expect(
+      inspection.profiles
+        .find((p) => p.field === 'account_status')
+        ?.categories.map((c) => c.value)
+        .sort(),
+    ).toEqual(['disabled', 'enabled', 'hold']);
+    expect(inspection.profiles.find((p) => p.field === 'full_name')?.categories).toEqual([]);
+    expect(inspection.profiles.find((p) => p.field === 'email_address')?.categories).toEqual([]);
+  });
+  it('blocks invented enum lookups and silent default business decisions', () => {
+    const proposal = structuredClone(demoProposal);
+    proposal.mappings.find((m) => m.target === 'status')!.transforms = [
+      { op: 'enum_map', arg: '{"active":"active","inactive":"inactive","paused":"paused"}' },
+    ];
+    expect(() => runInspectionTool('validate_proposal', { proposal }, inspection, [])).toThrow(
+      'observed categorical values',
+    );
+    proposal.mappings = structuredClone(demoProposal.mappings);
+    proposal.questions = [];
+    expect(() => runInspectionTool('validate_proposal', { proposal }, inspection, [])).toThrow(
+      'blocking user clarification',
+    );
+  });
   it('surfaces provider failure without silently falling back', async () => {
     const fetcher = (async () => new Response('', { status: 429 })) as typeof fetch;
     await expect(livePlan(inspection, 'test', 'test', fetcher)).rejects.toThrow('429');
