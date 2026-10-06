@@ -10,6 +10,8 @@ These records are browser-local. They persist through reload and are separate fr
 
 Every `POST /api/plan` generates a fresh request UUID, emits structured JSON lines and returns `X-Request-Id`. Failed responses also include the request ID. Events cover request start, provider rounds, tool outcomes, repair, completion, rejected input/authentication and provider failure/timeout.
 
+Provider failures can return the requesting operator's bounded inspection/validation trace in the response. This supports diagnosis of rejected suggestions while preserving the current plan. Those detail strings are not serialized into server logs; server logs retain only tool names/statuses and classified outcomes.
+
 Example format (illustrative metadata):
 
 ```json

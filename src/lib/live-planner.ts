@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { proposalSchema, type ToolTrace } from './contracts';
+import { mappingSchema, proposalSchema, type ToolTrace } from './contracts';
 import { runInspectionTool, TOOL_NAMES, validateLiveResult, type Inspection } from './planner';
 import { PLANNER_DEADLINE_MS } from './planner-limits';
 import type { PlannerStep } from './planner-logs';
@@ -52,6 +52,38 @@ export async function livePlan(
   observe: (step: PlannerStep) => void = () => {},
 ) {
   const trace: ToolTrace[] = [];
+  const targetNames = z.enum(inspection.targetSchema.fields.map((field) => field.name));
+  const sourceNames = z.enum(inspection.sourceSchema.fields.map((field) => field.name));
+  const groundedSchema = z.toJSONSchema(
+    proposalSchema.extend({
+      mappings: z
+        .array(mappingSchema.extend({ target: targetNames, source: sourceNames.nullable() }))
+        .length(inspection.targetSchema.fields.length),
+      risks: z.array(proposalSchema.shape.risks.element.extend({ field: targetNames })).max(64),
+      questions: z
+        .array(
+          proposalSchema.shape.questions.element.extend({
+            target: targetNames,
+            resolution: z.null(),
+          }),
+        )
+        .max(32),
+    }),
+    { target: 'draft-7' },
+  );
+  const tools = PLANNER_TOOLS.map((tool) =>
+    tool.name === 'validate_proposal'
+      ? {
+          ...tool,
+          parameters: {
+            type: 'object',
+            properties: { proposal: groundedSchema },
+            required: ['proposal'],
+            additionalProperties: false,
+          },
+        }
+      : tool,
+  );
   const input: unknown[] = [
     {
       role: 'user',
@@ -72,14 +104,20 @@ export async function livePlan(
           model,
           instructions: `${instructions} Inspect whitespace counts and add trim before strict email, date or boolean parsing when needed. Candidate format issue counts are measured after trimming, so they do not establish that untrimmed source values are valid. Enum maps preserve JSON value types: for a boolean target use unquoted true/false outputs or to_boolean, never leave string true/false values.`,
           input,
-          tools: PLANNER_TOOLS,
+          tools,
+          tool_choice: TOOL_NAMES.slice(0, 3).every((name) =>
+            trace.some((step) => step.tool === name && step.status === 'passed'),
+          )
+            ? { type: 'function', name: 'validate_proposal' }
+            : 'required',
+          ...(/^gpt-4\.1(?:-|$)/.test(model) ? { temperature: 0 } : {}),
           parallel_tool_calls: true,
           max_output_tokens: 6000,
           text: {
             format: {
               type: 'json_schema',
               name: 'migration_proposal',
-              schema: proposalJsonSchema,
+              schema: groundedSchema,
               strict: true,
             },
           },
@@ -179,6 +217,18 @@ export async function livePlan(
       }
     }
     throw new Error('Planner exhausted its seven-round budget without a valid proposal.');
+  } catch (error) {
+    if (error instanceof Error && Object.isExtensible(error))
+      Object.defineProperty(error, 'planningTrace', {
+        value: trace.slice(-20).map((step) => ({
+          tool: TOOL_NAMES.includes(step.tool as (typeof TOOL_NAMES)[number])
+            ? step.tool
+            : 'unknown',
+          status: step.status,
+          detail: step.detail.slice(0, 2000),
+        })),
+      });
+    throw error;
   } finally {
     clearTimeout(timer);
   }

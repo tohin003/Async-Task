@@ -31,6 +31,7 @@ try {
   });
   expect(rejectedResponse.status()).toBe(400);
   const rejectedBody = await rejectedResponse.json();
+  expect(rejectedBody.requestId).toMatch(/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/);
   expect(rejectedBody.requestId).toBe(rejectedResponse.headers()['x-request-id']);
   const planningStarted = Date.now();
   const pending = page.waitForResponse(
@@ -43,8 +44,18 @@ try {
   expect(requestId).toMatch(/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/);
   const planningDurationMs = Date.now() - planningStarted;
   const result = await response.json();
-  if (!response.ok())
+  if (!response.ok()) {
+    await mkdir('test-results', { recursive: true });
+    await writeFile(
+      'test-results/live-failure.json',
+      JSON.stringify(
+        { url, requestId, status: response.status(), error: result.error, trace: result.trace },
+        null,
+        2,
+      ) + '\n',
+    );
     throw new Error(`Live planning failed (${response.status()}): ${result.error}`);
+  }
   await mkdir('test-results', { recursive: true });
   await writeFile('test-results/live-proposal.json', JSON.stringify(result, null, 2) + '\n');
   expect(result.provider).toBe('live');

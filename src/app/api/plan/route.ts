@@ -1,13 +1,26 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { timingSafeEqual } from 'node:crypto';
 import { inspectionSchema } from '@/lib/planner';
 import { livePlan } from '@/lib/live-planner';
 import { hasAllowedOrigin } from '@/lib/request-origin';
 import { PLANNER_DEADLINE_MS } from '@/lib/planner-limits';
 import { createPlannerLog, type PlannerFailureCode } from '@/lib/planner-logs';
+import type { ToolTrace } from '@/lib/contracts';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
+const failureTraceSchema = z
+  .array(
+    z
+      .object({
+        tool: z.string().max(64),
+        status: z.enum(['passed', 'blocked']),
+        detail: z.string().max(2000),
+      })
+      .strict(),
+  )
+  .max(20);
 const json = (body: unknown, status = 200, requestId?: string) =>
   NextResponse.json(body, {
     status,
@@ -23,9 +36,18 @@ export async function GET() {
 export async function POST(request: Request) {
   const log = createPlannerLog();
   log.write({ event: 'request.started' });
-  const reject = (error: string, status: number, code: PlannerFailureCode) => {
+  const reject = (
+    error: string,
+    status: number,
+    code: PlannerFailureCode,
+    trace: ToolTrace[] = [],
+  ) => {
     log.write({ event: status < 500 ? 'request.rejected' : 'request.failed', status, code });
-    return json({ error, requestId: log.requestId }, status, log.requestId);
+    return json(
+      { error, requestId: log.requestId, ...(trace.length ? { trace } : {}) },
+      status,
+      log.requestId,
+    );
   };
   if (!process.env.OPENAI_API_KEY)
     return reject(
@@ -90,6 +112,9 @@ export async function POST(request: Request) {
     });
     return json(result, 200, log.requestId);
   } catch (error) {
+    const parsedTrace = failureTraceSchema.safeParse(
+      error instanceof Error && 'planningTrace' in error ? error.planningTrace : [],
+    );
     const timedOut = error instanceof Error && error.name === 'AbortError';
     const message = timedOut
       ? `Planning exceeded the ${PLANNER_DEADLINE_MS / 1000}-second deadline. Try again or select demo planning.`
@@ -98,6 +123,11 @@ export async function POST(request: Request) {
         : error instanceof Error
           ? error.message
           : 'Planning failed.';
-    return reject(message, 502, timedOut ? 'PROVIDER_TIMEOUT' : 'PROVIDER_FAILURE');
+    return reject(
+      message,
+      502,
+      timedOut ? 'PROVIDER_TIMEOUT' : 'PROVIDER_FAILURE',
+      parsedTrace.success ? parsedTrace.data : [],
+    );
   }
 }

@@ -186,7 +186,24 @@ describe('bounded planner', () => {
       expect(body.tools).toHaveLength(4);
       expect(body.text.format.type).toBe('json_schema');
       expect(body.text.format.strict).toBe(true);
+      expect(body.text.format.schema.properties.mappings.items.properties.target.enum).toEqual(
+        inspection.targetSchema.fields.map((field) => field.name),
+      );
+      expect(body.text.format.schema.properties.risks.items.properties.field.enum).not.toContain(
+        'customer_id',
+      );
+      expect(body.text.format.schema.properties.questions.items.properties.resolution.type).toBe(
+        'null',
+      );
+      expect(
+        body.tools.find((tool: { name: string }) => tool.name === 'validate_proposal').parameters
+          .properties.proposal,
+      ).toEqual(body.text.format.schema);
+      expect(body.temperature).toBe(0);
       const current = round++;
+      expect(body.tool_choice).toEqual(
+        current < 3 ? 'required' : { type: 'function', name: 'validate_proposal' },
+      );
       return new Response(
         JSON.stringify({
           status: 'completed',
@@ -209,7 +226,7 @@ describe('bounded planner', () => {
         }),
       );
     }) as typeof fetch;
-    const result = await livePlan(inspection, 'test', 'test', fetcher, (step) =>
+    const result = await livePlan(inspection, 'test', 'gpt-4.1-mini', fetcher, (step) =>
       observed.push(step),
     );
     expect(result.provider).toBe('live');
@@ -218,6 +235,40 @@ describe('bounded planner', () => {
       observed.filter((step) => step.event === 'tool.completed').map((step) => step.tool),
     ).toEqual(tools);
     expect(observed.filter((step) => step.event === 'provider.round')).toHaveLength(4);
+  });
+  it('preserves bounded inspection evidence when repeated invalid proposals exhaust the loop', async () => {
+    let round = 0;
+    const invalid = structuredClone(demoProposal);
+    invalid.mappings[0].source = 'nonexistent_source';
+    const fetcher = (async () =>
+      new Response(
+        JSON.stringify({
+          status: 'completed',
+          output:
+            round++ === 0
+              ? ['inspect_schemas', 'profile_source', 'inspect_transformations'].map((name, i) => ({
+                  type: 'function_call',
+                  name,
+                  call_id: `inspect-${i}`,
+                  arguments: '{}',
+                }))
+              : [
+                  {
+                    type: 'function_call',
+                    name: 'validate_proposal',
+                    call_id: `validate-${round}`,
+                    arguments: JSON.stringify({ proposal: invalid }),
+                  },
+                ],
+        }),
+      )) as typeof fetch;
+    await expect(livePlan(inspection, 'test', 'test', fetcher)).rejects.toMatchObject({
+      message: expect.stringContaining('seven-round budget'),
+      planningTrace: expect.arrayContaining([
+        expect.objectContaining({ tool: 'validate_proposal', status: 'blocked' }),
+      ]),
+    });
+    expect(round).toBe(7);
   });
   it('accepts only the exact wrapped final proposal after inspection', async () => {
     let round = 0;

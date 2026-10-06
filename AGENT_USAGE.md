@@ -15,6 +15,8 @@ The live planner uses the OpenAI Responses API with the server-configured model 
 
 The agent has no approval, execution, rollback, database, browser, filesystem or arbitrary-code tool. Seven rounds, twelve calls and a 90-second deadline bound each live request. Tool arguments and final output use strict schemas. Invalid output receives bounded repair feedback; failed requests preserve the current plan and do not silently switch to the demo provider.
 
+The request schema restricts mapping sources and targets, risk fields and question targets to the actual supplied schemas. AI clarification resolutions are constrained to null; human decisions remain separate. Tools are required during inspection; after all three evidence tools pass, the runtime forces `validate_proposal`, following the [OpenAI tool-selection API](https://developers.openai.com/api/docs/guides/function-calling). GPT-4.1 models use temperature zero to reduce exploratory variation. This does not make AI proposals deterministic; the approved dry-run engine owns determinism.
+
 ## Representative application prompts
 
 The system instructions in [live-planner.ts](src/lib/live-planner.ts) include these rules:
@@ -65,6 +67,8 @@ AgentGuard's actual Python `RepoIndex` was invoked through the optional developm
 | Sidebar content exceeded short browser heights                         | Independently scroll navigation/resources and reserve the footer inside the dynamic viewport      | Short desktop/mobile viewport regression                              |
 
 ## How output was verified
+
+A hosted check also caught repeated invalid suggestions exhausting the seven-round budget. The runtime now forces validation after inspection and constrains generated field choices to the actual schemas. Failed requests preserve bounded inspection/validation evidence for the requesting operator; sensitive detail strings remain excluded from server logs. Tool-selection, grounded-schema and budget-exhaustion regressions verify these policies.
 
 Proposals pass Zod contracts, actual-field references, the finite transformation registry and semantic checks. The deterministic engine accounts for every row and retains original/transformed field errors. Tests cover approval binding, unsupported rules, invalid records, target conflicts, concurrent retries, drift and ownership-scoped rollback. Browser tests cover the whole lifecycle, persistence, mobile layout and accessibility.
 
