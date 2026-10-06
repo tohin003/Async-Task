@@ -1,0 +1,14 @@
+import type { Metadata, Viewport } from 'next';
+import '@fontsource-variable/inter';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Relay — Migration workbench',
+  description: 'Plan with an agent. Validate with evidence. Migrate with confidence. A bounded data migration and reconciliation workbench.',
+  applicationName: 'Relay',
+  robots: { index: false, follow: false },
+};
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#f6f7f9' };
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="en"><body>{children}</body></html>;
+}
