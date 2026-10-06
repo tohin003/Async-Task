@@ -12,6 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "guard:inspect": "python3 scripts/agentguard_inspect.py"
   },
@@ -35,6 +37,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fake-indexeddb": "^6.2.0",
+    "prettier": "^3.9.9",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.3"

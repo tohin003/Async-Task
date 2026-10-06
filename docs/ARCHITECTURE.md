@@ -30,7 +30,7 @@ One workspace has one dataset, an immutable version list, dry runs and approvals
 
 ## Fingerprints and determinism
 
-Canonical JSON sorts object keys, preserves arrays, and feeds SHA-256. Dataset fingerprints include both schemas and sample rows. Plan fingerprints include dataset identity, mappings and clarification resolutions. Dry-run digests include each original/transformed record and field evidence. Execution recomputes the dry run and requires an exact approval/digest match. Hashes detect accidental drift; a local user can alter browser storage, so this is not tamper-proof forensic storage.
+Canonical JSON sorts object keys, preserves arrays, and feeds SHA-256. Dataset fingerprints include both schemas and sample rows. Plan fingerprints include dataset identity and the complete reviewed proposal: mappings, risk evidence, summary and clarification decisions. Dry-run digests include each original/transformed record and field evidence. Execution recomputes the dry run and requires an exact approval/digest match. Hashes detect accidental drift; a local user can alter browser storage, so this is not tamper-proof forensic storage.
 
 ## AI trust boundary
 

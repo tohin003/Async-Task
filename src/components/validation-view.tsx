@@ -1,20 +1,327 @@
 'use client';
 import { useState } from 'react';
-import { AlertTriangle, ArrowRight, ChevronLeft, ChevronRight, Download, Eye, FlaskConical, Search, ShieldCheck } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Eye,
+  FlaskConical,
+  Search,
+  ShieldCheck,
+} from 'lucide-react';
 import type { Dataset, DryRun, Plan, RowResult } from '@/lib/contracts';
 import { Badge, Button, display, download, Empty, Modal } from './ui';
 import { mappingLabel } from '@/lib/engine';
 
-export function ValidationView({ run, plan, dataset, busy, onRun }: { run?: DryRun; plan: Plan; dataset: Dataset; busy: boolean; onRun: () => void }) {
-  const [filter, setFilter] = useState('all'); const [search, setSearch] = useState(''); const [page, setPage] = useState(0); const [selected, setSelected] = useState<RowResult | null>(null);
-  if (!run) return <div className="panel"><Empty icon={<FlaskConical size={30} />} title="Evidence before execution" action={<Button variant="primary" disabled={busy} onClick={onRun}><FlaskConical size={16} />Run deterministic dry run</Button>}>Transform every source record using this plan, validate target constraints, and inspect quarantine evidence. The mock target stays untouched.</Empty></div>;
-  const filtered = run.rows.filter(r => (filter === 'all' || (filter === 'accepted' ? r.accepted : !r.accepted)) && JSON.stringify([r.source, r.transformed, r.errors]).toLowerCase().includes(search.toLowerCase()));
+export function ValidationView({
+  run,
+  plan,
+  dataset,
+  busy,
+  onRun,
+}: {
+  run?: DryRun;
+  plan: Plan;
+  dataset: Dataset;
+  busy: boolean;
+  onRun: () => void;
+}) {
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [selected, setSelected] = useState<RowResult | null>(null);
+  if (!run)
+    return (
+      <div className="panel">
+        <Empty
+          icon={<FlaskConical size={30} />}
+          title="Evidence before execution"
+          action={
+            <Button variant="primary" disabled={busy} onClick={onRun}>
+              <FlaskConical size={16} />
+              Run deterministic dry run
+            </Button>
+          }
+        >
+          Transform every source record using this plan, validate target constraints, and inspect
+          quarantine evidence. The mock target stays untouched.
+        </Empty>
+      </div>
+    );
+  const filtered = run.rows.filter(
+    (r) =>
+      (filter === 'all' || (filter === 'accepted' ? r.accepted : !r.accepted)) &&
+      JSON.stringify([r.source, r.transformed, r.errors])
+        .toLowerCase()
+        .includes(search.toLowerCase()),
+  );
   const visible = filtered.slice(page * 10, page * 10 + 10);
   const pages = Math.max(1, Math.ceil(filtered.length / 10));
-  const errorCounts = Object.entries(run.rows.flatMap(r => r.errors).reduce<Record<string, number>>((a, e) => ({ ...a, [e.code]: (a[e.code] ?? 0) + 1 }), {}));
-  return <div className="view-stack"><div className="validation-banner"><div className="validation-banner-icon"><ShieldCheck size={25} /></div><div><h3>Every record accounted for.</h3><p>{run.source} source = {run.accepted} accepted + {run.rejected} quarantined. Deterministic and repeatable.</p></div><Badge tone="green">Dry run complete</Badge></div><div className="waterfall"><div><span>Source records</span><strong>{run.source}</strong><small>Original sample</small></div><ArrowRight size={20} /><div><span>Transformed</span><strong>{run.transformed}</strong><small>All rows processed</small></div><ArrowRight size={20} /><div className="accepted"><span>Accepted</span><strong>{run.accepted}</strong><small>Ready for migration</small></div><div className="rejected"><span>Quarantined</span><strong>{run.rejected}</strong><small>Evidence preserved</small></div></div>
-    {run.rejected > 0 && <div className="quarantine-overview"><div><AlertTriangle size={16} /><strong>Quarantine breakdown</strong></div><div className="error-chips">{errorCounts.map(([code, count]) => <Badge key={code} tone="amber">{code.toLowerCase().replaceAll('_', ' ')} <b>{count}</b></Badge>)}</div></div>}
-    <div className="panel"><div className="panel-head"><div><h3>Record inspection <span className="count-badge">{run.source}</span></h3><p>Original values, transformed output and exact validation failures.</p></div><Button disabled={!run.rejected} onClick={() => download(`relay-quarantine-v${plan.version}.json`, { planFingerprint: plan.fingerprint, digest: run.digest, records: run.rows.filter(r => !r.accepted) })}><Download size={14} />Export quarantine</Button></div><div className="table-toolbar"><div className="segmented">{['all', 'accepted', 'quarantined'].map(f => <button key={f} className={filter === f ? 'selected' : ''} onClick={() => { setFilter(f); setPage(0); }}>{f === 'all' ? 'All records' : f === 'accepted' ? 'Accepted' : 'Quarantined'} <span>{f === 'all' ? run.source : f === 'accepted' ? run.accepted : run.rejected}</span></button>)}</div><label className="search-input"><Search size={15} /><input aria-label="Search validation records" placeholder="Search records or errors…" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></label></div><div className="table-scroll"><table className="data-table"><thead><tr><th>Source row</th><th>Record identifier</th><th>Validation result</th><th>Field evidence</th><th /></tr></thead><tbody>{visible.map(r => <tr key={r.index}><td className="muted mono">{String(r.index + 1).padStart(3, '0')}</td><td><code>{display(r.source[dataset.sourceSchema.primaryKey])}</code></td><td><Badge tone={r.accepted ? 'green' : 'amber'}>{r.accepted ? <ShieldCheck size={12} /> : <AlertTriangle size={12} />}{r.accepted ? 'Accepted' : 'Quarantined'}</Badge></td><td>{r.accepted ? <span className="muted">All target constraints passed</span> : <span className="error-field">{r.errors.map(e => e.field).join(', ')} <small>· {r.errors.length} {r.errors.length === 1 ? 'issue' : 'issues'}</small></span>}</td><td><button className="icon-button" aria-label={`Inspect source row ${r.index + 1}`} onClick={() => setSelected(r)}><Eye size={16} /></button></td></tr>)}</tbody></table>{!visible.length && <div className="table-empty">No records match your filters.</div>}</div><div className="pagination"><span>{filtered.length ? `${page * 10 + 1}–${Math.min((page + 1) * 10, filtered.length)}` : '0'} of {filtered.length} records</span><div><button className="icon-button" aria-label="Previous page" disabled={page === 0} onClick={() => setPage(page - 1)}><ChevronLeft size={16} /></button><span>Page {page + 1} of {pages}</span><button className="icon-button" aria-label="Next page" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}><ChevronRight size={16} /></button></div></div></div><p className="digest-footnote">Validation digest <code>{run.digest}</code></p>
-    {selected && <Modal title={`Source row ${selected.index + 1}`} eyebrow="FIELD-LEVEL EVIDENCE" onClose={() => setSelected(null)} wide><div className="modal-body"><Badge tone={selected.accepted ? 'green' : 'amber'}>{selected.accepted ? 'Accepted' : 'Quarantined'}</Badge><div className="record-comparison"><div><h4>Original source</h4><pre>{JSON.stringify(selected.source, null, 2)}</pre></div><div><h4>Transformed output</h4><pre>{JSON.stringify(selected.transformed, null, 2)}</pre></div></div>{selected.errors.length > 0 && <div className="evidence-list">{selected.errors.map((e, i) => <div className="evidence-card" key={i}><div><strong>{e.field}</strong><Badge tone="red">{e.code}</Badge></div><p>{e.message}</p><dl><dt>Source field</dt><dd><code>{e.sourceField ?? 'No source'}</code></dd><dt>Original value</dt><dd><code>{display(e.original)}</code></dd><dt>Transformed value</dt><dd><code>{display(e.transformed)}</code></dd><dt>Failed rule</dt><dd><code>{e.rule}</code></dd></dl></div>)}</div>}<h4>Applied mapping rules</h4><div className="record-rules">{plan.mappings.map(m => <div key={m.target}><code>{m.target}</code><span>{mappingLabel(m)}</span></div>)}</div></div><div className="modal-footer"><Button onClick={() => setSelected(null)}>Close inspection</Button></div></Modal>}
-  </div>;
+  const errorCounts = Object.entries(
+    run.rows
+      .flatMap((r) => r.errors)
+      .reduce<Record<string, number>>((a, e) => ({ ...a, [e.code]: (a[e.code] ?? 0) + 1 }), {}),
+  );
+  return (
+    <div className="view-stack">
+      <div className="validation-banner">
+        <div className="validation-banner-icon">
+          <ShieldCheck size={25} />
+        </div>
+        <div>
+          <h3>Every record accounted for.</h3>
+          <p>
+            {run.source} source = {run.accepted} accepted + {run.rejected} quarantined.
+            Deterministic and repeatable.
+          </p>
+        </div>
+        <Badge tone="green">Dry run complete</Badge>
+      </div>
+      <div className="waterfall">
+        <div>
+          <span>Source records</span>
+          <strong>{run.source}</strong>
+          <small>Original sample</small>
+        </div>
+        <ArrowRight size={20} />
+        <div>
+          <span>Transformed</span>
+          <strong>{run.transformed}</strong>
+          <small>All rows processed</small>
+        </div>
+        <ArrowRight size={20} />
+        <div className="accepted">
+          <span>Accepted</span>
+          <strong>{run.accepted}</strong>
+          <small>Ready for migration</small>
+        </div>
+        <div className="rejected">
+          <span>Quarantined</span>
+          <strong>{run.rejected}</strong>
+          <small>Evidence preserved</small>
+        </div>
+      </div>
+      {run.rejected > 0 && (
+        <div className="quarantine-overview">
+          <div>
+            <AlertTriangle size={16} />
+            <strong>Quarantine breakdown</strong>
+          </div>
+          <div className="error-chips">
+            {errorCounts.map(([code, count]) => (
+              <Badge key={code} tone="amber">
+                {code.toLowerCase().replaceAll('_', ' ')} <b>{count}</b>
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h3>
+              Record inspection <span className="count-badge">{run.source}</span>
+            </h3>
+            <p>Original values, transformed output and exact validation failures.</p>
+          </div>
+          <Button
+            disabled={!run.rejected}
+            onClick={() =>
+              download(`relay-quarantine-v${plan.version}.json`, {
+                planFingerprint: plan.fingerprint,
+                digest: run.digest,
+                records: run.rows.filter((r) => !r.accepted),
+              })
+            }
+          >
+            <Download size={14} />
+            Export quarantine
+          </Button>
+        </div>
+        <div className="table-toolbar">
+          <div className="segmented">
+            {['all', 'accepted', 'quarantined'].map((f) => (
+              <button
+                key={f}
+                className={filter === f ? 'selected' : ''}
+                onClick={() => {
+                  setFilter(f);
+                  setPage(0);
+                }}
+              >
+                {f === 'all' ? 'All records' : f === 'accepted' ? 'Accepted' : 'Quarantined'}{' '}
+                <span>
+                  {f === 'all' ? run.source : f === 'accepted' ? run.accepted : run.rejected}
+                </span>
+              </button>
+            ))}
+          </div>
+          <label className="search-input">
+            <Search size={15} />
+            <input
+              aria-label="Search validation records"
+              placeholder="Search records or errors…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
+            />
+          </label>
+        </div>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Source row</th>
+                <th>Record identifier</th>
+                <th>Validation result</th>
+                <th>Field evidence</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((r) => (
+                <tr key={r.index}>
+                  <td className="muted mono">{String(r.index + 1).padStart(3, '0')}</td>
+                  <td>
+                    <code>{display(r.source[dataset.sourceSchema.primaryKey])}</code>
+                  </td>
+                  <td>
+                    <Badge tone={r.accepted ? 'green' : 'amber'}>
+                      {r.accepted ? <ShieldCheck size={12} /> : <AlertTriangle size={12} />}
+                      {r.accepted ? 'Accepted' : 'Quarantined'}
+                    </Badge>
+                  </td>
+                  <td>
+                    {r.accepted ? (
+                      <span className="muted">All target constraints passed</span>
+                    ) : (
+                      <span className="error-field">
+                        {r.errors.map((e) => e.field).join(', ')}{' '}
+                        <small>
+                          · {r.errors.length} {r.errors.length === 1 ? 'issue' : 'issues'}
+                        </small>
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <button
+                      className="icon-button"
+                      aria-label={`Inspect source row ${r.index + 1}`}
+                      onClick={() => setSelected(r)}
+                    >
+                      <Eye size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!visible.length && <div className="table-empty">No records match your filters.</div>}
+        </div>
+        <div className="pagination">
+          <span>
+            {filtered.length
+              ? `${page * 10 + 1}–${Math.min((page + 1) * 10, filtered.length)}`
+              : '0'}{' '}
+            of {filtered.length} records
+          </span>
+          <div>
+            <button
+              className="icon-button"
+              aria-label="Previous page"
+              disabled={page === 0}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span>
+              Page {page + 1} of {pages}
+            </span>
+            <button
+              className="icon-button"
+              aria-label="Next page"
+              disabled={page + 1 >= pages}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+      <p className="digest-footnote">
+        Validation digest <code>{run.digest}</code>
+      </p>
+      {selected && (
+        <Modal
+          title={`Source row ${selected.index + 1}`}
+          eyebrow="FIELD-LEVEL EVIDENCE"
+          onClose={() => setSelected(null)}
+          wide
+        >
+          <div className="modal-body">
+            <Badge tone={selected.accepted ? 'green' : 'amber'}>
+              {selected.accepted ? 'Accepted' : 'Quarantined'}
+            </Badge>
+            <div className="record-comparison">
+              <div>
+                <h4>Original source</h4>
+                <pre>{JSON.stringify(selected.source, null, 2)}</pre>
+              </div>
+              <div>
+                <h4>Transformed output</h4>
+                <pre>{JSON.stringify(selected.transformed, null, 2)}</pre>
+              </div>
+            </div>
+            {selected.errors.length > 0 && (
+              <div className="evidence-list">
+                {selected.errors.map((e, i) => (
+                  <div className="evidence-card" key={i}>
+                    <div>
+                      <strong>{e.field}</strong>
+                      <Badge tone="red">{e.code}</Badge>
+                    </div>
+                    <p>{e.message}</p>
+                    <dl>
+                      <dt>Source field</dt>
+                      <dd>
+                        <code>{e.sourceField ?? 'No source'}</code>
+                      </dd>
+                      <dt>Original value</dt>
+                      <dd>
+                        <code>{display(e.original)}</code>
+                      </dd>
+                      <dt>Transformed value</dt>
+                      <dd>
+                        <code>{display(e.transformed)}</code>
+                      </dd>
+                      <dt>Failed rule</dt>
+                      <dd>
+                        <code>{e.rule}</code>
+                      </dd>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            )}
+            <h4>Applied mapping rules</h4>
+            <div className="record-rules">
+              {plan.mappings.map((m) => (
+                <div key={m.target}>
+                  <code>{m.target}</code>
+                  <span>{mappingLabel(m)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="modal-footer">
+            <Button onClick={() => setSelected(null)}>Close inspection</Button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
 }

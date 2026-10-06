@@ -1,13 +1,123 @@
 'use client';
 import { useState } from 'react';
-import { Check, CheckCheck, Database, Download, FlaskConical, GitBranch, History, Play, RotateCcw, ShieldCheck, RefreshCw } from 'lucide-react';
+import {
+  Check,
+  CheckCheck,
+  Database,
+  Download,
+  FlaskConical,
+  GitBranch,
+  History,
+  Play,
+  RotateCcw,
+  ShieldCheck,
+  RefreshCw,
+} from 'lucide-react';
 import type { AuditEvent, Workspace } from '@/lib/contracts';
 import { verifyHistory } from '@/lib/lifecycle';
 import { Badge, Button, download, time } from './ui';
-const icons = { dataset: Database, plan: GitBranch, dry_run: FlaskConical, approval: ShieldCheck, execution: Play, retry: RefreshCw, rollback: RotateCcw, reconciliation: CheckCheck };
-const labels = { dataset: 'Dataset inspected', plan: 'Plan version created', dry_run: 'Dry run completed', approval: 'User approval recorded', execution: 'Migration executed', retry: 'Migration retried', rollback: 'Migration rolled back', reconciliation: 'Reconciliation checked' };
+const icons = {
+  dataset: Database,
+  plan: GitBranch,
+  dry_run: FlaskConical,
+  approval: ShieldCheck,
+  execution: Play,
+  retry: RefreshCw,
+  rollback: RotateCcw,
+  reconciliation: CheckCheck,
+};
+const labels = {
+  dataset: 'Dataset inspected',
+  plan: 'Plan version created',
+  dry_run: 'Dry run completed',
+  approval: 'User approval recorded',
+  execution: 'Migration executed',
+  retry: 'Migration retried',
+  rollback: 'Migration rolled back',
+  reconciliation: 'Reconciliation checked',
+};
 export function ActivityView({ workspace }: { workspace: Workspace }) {
   const [filter, setFilter] = useState('all');
-  const events = workspace.events.filter(e => filter === 'all' || e.type === filter).toReversed();
-  return <div className="panel"><div className="panel-head"><div><h3>Activity & provenance <span className="count-badge">{workspace.events.length}</span></h3><p>Durable local history from first inspection to final rollback.</p></div><Button onClick={() => download('relay-audit-history.json', { events: workspace.events, verified: verifyHistory(workspace.events) })}><Download size={14} />Export history</Button></div><div className="table-toolbar"><div className="history-integrity"><ShieldCheck size={16} /><span>{verifyHistory(workspace.events) ? 'Event hash chain verified' : 'Event hash chain damaged'}</span></div><label className="inline-select"><span>Show</span><select aria-label="Filter activity" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">All events</option>{Object.keys(icons).map(type => <option key={type} value={type}>{labels[type as AuditEvent['type']]}</option>)}</select></label></div><div className="timeline">{events.map(e => { const Icon = icons[e.type] ?? History; return <div className="timeline-item" key={e.id}><div className={`timeline-icon ${e.type}`}><Icon size={16} /></div><div className="timeline-content"><div className="timeline-title"><strong>{labels[e.type]}</strong>{e.planId && <Badge>{e.planId.replace('plan-', 'v')}</Badge>}<span>{time(e.createdAt)}</span></div><p>{e.detail}</p><div className="timeline-meta"><span>{e.actor}</span><span>·</span><code>{e.hash.slice(0, 16)}</code><Check size={12} /></div></div></div>; })}{!events.length && <p className="table-empty">No events match this filter.</p>}</div><div className="panel-bottom"><span className="helper">Hash chaining detects accidental modification. This browser-local history is not tamper-proof.</span></div></div>;
+  const events = workspace.events.filter((e) => filter === 'all' || e.type === filter).toReversed();
+  return (
+    <div className="panel">
+      <div className="panel-head">
+        <div>
+          <h3>
+            Activity & provenance <span className="count-badge">{workspace.events.length}</span>
+          </h3>
+          <p>Durable local history from first inspection to final rollback.</p>
+        </div>
+        <Button
+          onClick={() =>
+            download('relay-audit-history.json', {
+              events: workspace.events,
+              verified: verifyHistory(workspace.events),
+            })
+          }
+        >
+          <Download size={14} />
+          Export history
+        </Button>
+      </div>
+      <div className="table-toolbar">
+        <div className="history-integrity">
+          <ShieldCheck size={16} />
+          <span>
+            {verifyHistory(workspace.events)
+              ? 'Event hash chain verified'
+              : 'Event hash chain damaged'}
+          </span>
+        </div>
+        <label className="inline-select">
+          <span>Show</span>
+          <select
+            aria-label="Filter activity"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="all">All events</option>
+            {Object.keys(icons).map((type) => (
+              <option key={type} value={type}>
+                {labels[type as AuditEvent['type']]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="timeline">
+        {events.map((e) => {
+          const Icon = icons[e.type] ?? History;
+          return (
+            <div className="timeline-item" key={e.id}>
+              <div className={`timeline-icon ${e.type}`}>
+                <Icon size={16} />
+              </div>
+              <div className="timeline-content">
+                <div className="timeline-title">
+                  <strong>{labels[e.type]}</strong>
+                  {e.planId && <Badge>{e.planId.replace('plan-', 'v')}</Badge>}
+                  <span>{time(e.createdAt)}</span>
+                </div>
+                <p>{e.detail}</p>
+                <div className="timeline-meta">
+                  <span>{e.actor}</span>
+                  <span>·</span>
+                  <code>{e.hash.slice(0, 16)}</code>
+                  <Check size={12} />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {!events.length && <p className="table-empty">No events match this filter.</p>}
+      </div>
+      <div className="panel-bottom">
+        <span className="helper">
+          Hash chaining detects accidental modification. This browser-local history is not
+          tamper-proof.
+        </span>
+      </div>
+    </div>
+  );
 }

@@ -1,0 +1,30 @@
+{
+  "integration": "AgentGuard repository index",
+  "summary": {
+    "files": 42,
+    "parsed_files": 1,
+    "symbols": 6,
+    "tested_sources": 4,
+    "test_files": 4,
+    "config_files": 5,
+    "dependencies": 21,
+    "manifests": ["package.json"],
+    "languages": {
+      "typescript": 17,
+      "tsx": 10,
+      "unknown": 4,
+      "json": 4,
+      "markdown": 4,
+      "python": 1,
+      "javascript": 1,
+      "css": 1
+    },
+    "build_ms": 32.0
+  },
+  "limitations": [
+    "Read-only development inspection, not a live coding-agent hook",
+    "Unknown language extraction remains unknown",
+    "Runtime migration policies are Relay's original TypeScript guards"
+  ],
+  "note": "Actual AgentGuard RepoIndex run through the optional development adapter. TypeScript symbol extraction was unavailable; unknown evidence is not verification."
+}

@@ -1,24 +1,292 @@
 'use client';
 import { useState, type ChangeEvent } from 'react';
-import { ArrowRight, Database, Download, FileJson, KeyRound, LockKeyhole, Upload, Check, Table2 } from 'lucide-react';
+import {
+  ArrowRight,
+  Database,
+  Download,
+  FileJson,
+  KeyRound,
+  LockKeyhole,
+  Upload,
+  Check,
+  Table2,
+} from 'lucide-react';
 import { bundleSchema, LIMITS, type Bundle, type Dataset, type DataSchema } from '@/lib/contracts';
 import { demoBundle } from '@/lib/demo';
 import { inspectDataset } from '@/lib/planner';
 import { Badge, Button, display, download, Modal } from './ui';
 
-function SchemaTable({ schema, source }: { schema: DataSchema; source: boolean }) { return <div className="panel schema-panel"><div className="panel-head"><div className="schema-heading"><span className={`schema-icon ${source ? 'source' : 'target'}`}><Database size={19} /></span><div><span className="eyebrow">{source ? 'SOURCE SCHEMA' : 'TARGET SCHEMA'}</span><h3>{schema.name}</h3></div></div><Badge>{schema.fields.length} fields</Badge></div><table className="data-table"><thead><tr><th>Field</th><th>Type</th><th>Constraints</th></tr></thead><tbody>{schema.fields.map(f => <tr key={f.name}><td><code>{f.name}</code>{f.name === schema.primaryKey && <KeyRound size={12} className="key-icon" />}{f.description && <p className="field-description">{f.description}</p>}</td><td><span className="type-chip">{f.type}</span></td><td><div className="constraint-list">{f.required && <Badge>Required</Badge>}{(f.unique || f.name === schema.primaryKey) && <Badge tone="blue">Unique</Badge>}{f.values && <small>{f.values.join(' · ')}</small>}{f.min !== undefined && <small>min {f.min}</small>}{f.max !== undefined && <small>max {f.max}</small>}</div></td></tr>)}</tbody></table></div>; }
+function SchemaTable({ schema, source }: { schema: DataSchema; source: boolean }) {
+  return (
+    <div className="panel schema-panel">
+      <div className="panel-head">
+        <div className="schema-heading">
+          <span className={`schema-icon ${source ? 'source' : 'target'}`}>
+            <Database size={19} />
+          </span>
+          <div>
+            <span className="eyebrow">{source ? 'SOURCE SCHEMA' : 'TARGET SCHEMA'}</span>
+            <h3>{schema.name}</h3>
+          </div>
+        </div>
+        <Badge>{schema.fields.length} fields</Badge>
+      </div>
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Constraints</th>
+          </tr>
+        </thead>
+        <tbody>
+          {schema.fields.map((f) => (
+            <tr key={f.name}>
+              <td>
+                <code>{f.name}</code>
+                {f.name === schema.primaryKey && <KeyRound size={12} className="key-icon" />}
+                {f.description && <p className="field-description">{f.description}</p>}
+              </td>
+              <td>
+                <span className="type-chip">{f.type}</span>
+              </td>
+              <td>
+                <div className="constraint-list">
+                  {f.required && <Badge>Required</Badge>}
+                  {(f.unique || f.name === schema.primaryKey) && <Badge tone="blue">Unique</Badge>}
+                  {f.values && <small>{f.values.join(' · ')}</small>}
+                  {f.min !== undefined && <small>min {f.min}</small>}
+                  {f.max !== undefined && <small>max {f.max}</small>}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 export function SourceView({ dataset, onImport }: { dataset: Dataset; onImport: () => void }) {
   const profile = inspectDataset(dataset);
-  return <div className="view-stack"><div className="scope-banner"><FileJson size={21} /><div><h3>One source. One target. A clear boundary.</h3><p>Up to {LIMITS.records} records · {LIMITS.fields} fields per schema · 1 MB per JSON bundle</p></div><Button onClick={onImport}><Upload size={15} />Import dataset</Button></div><div className="schema-grid"><SchemaTable schema={dataset.sourceSchema} source /><SchemaTable schema={dataset.targetSchema} source={false} /></div><div className="panel"><div className="panel-head"><div><h3>Source profile</h3><p>Aggregate inspection across {dataset.records.length} source records.</p></div><Badge tone="green"><LockKeyhole size={12} />Raw data stays local</Badge></div><div className="table-scroll"><table className="data-table"><thead><tr><th>Field</th><th>Records</th><th>Missing</th><th>Distinct values</th><th>Source schema issues</th><th>Observed types</th></tr></thead><tbody>{profile.profiles.map(p => <tr key={p.field}><td><code>{p.field}</code></td><td>{p.total}</td><td className={p.missing ? 'text-amber' : 'muted'}>{p.missing}</td><td>{p.distinct}</td><td className={p.invalid ? 'text-amber' : 'muted'}>{p.invalid}</td><td className="muted">{Object.entries(p.types).map(([t, n]) => `${t}: ${n}`).join(' · ')}</td></tr>)}</tbody></table></div></div><div className="panel"><div className="panel-head"><div><h3>Sample source records</h3><p>First 5 records. The original source is never modified.</p></div><Button onClick={() => download('relay-source-bundle.json', { name: dataset.name, sourceSchema: dataset.sourceSchema, targetSchema: dataset.targetSchema, records: dataset.records })}><Download size={14} />Export source bundle</Button></div><div className="table-scroll"><table className="data-table"><thead><tr>{dataset.sourceSchema.fields.map(f => <th key={f.name}>{f.name}</th>)}</tr></thead><tbody>{dataset.records.slice(0, 5).map((r, i) => <tr key={i}>{dataset.sourceSchema.fields.map(f => <td key={f.name}><code>{display(r[f.name])}</code></td>)}</tr>)}</tbody></table></div></div><p className="digest-footnote">Dataset fingerprint <code>{dataset.fingerprint}</code></p></div>;
+  return (
+    <div className="view-stack">
+      <div className="scope-banner">
+        <FileJson size={21} />
+        <div>
+          <h3>One source. One target. A clear boundary.</h3>
+          <p>
+            Up to {LIMITS.records} records · {LIMITS.fields} fields per schema · 1 MB per JSON
+            bundle
+          </p>
+        </div>
+        <Button onClick={onImport}>
+          <Upload size={15} />
+          Import dataset
+        </Button>
+      </div>
+      <div className="schema-grid">
+        <SchemaTable schema={dataset.sourceSchema} source />
+        <SchemaTable schema={dataset.targetSchema} source={false} />
+      </div>
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h3>Source profile</h3>
+            <p>Aggregate inspection across {dataset.records.length} source records.</p>
+          </div>
+          <Badge tone="green">
+            <LockKeyhole size={12} />
+            Raw data stays local
+          </Badge>
+        </div>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Records</th>
+                <th>Missing</th>
+                <th>Distinct values</th>
+                <th>Source schema issues</th>
+                <th>Observed types</th>
+              </tr>
+            </thead>
+            <tbody>
+              {profile.profiles.map((p) => (
+                <tr key={p.field}>
+                  <td>
+                    <code>{p.field}</code>
+                  </td>
+                  <td>{p.total}</td>
+                  <td className={p.missing ? 'text-amber' : 'muted'}>{p.missing}</td>
+                  <td>{p.distinct}</td>
+                  <td className={p.invalid ? 'text-amber' : 'muted'}>{p.invalid}</td>
+                  <td className="muted">
+                    {Object.entries(p.types)
+                      .map(([t, n]) => `${t}: ${n}`)
+                      .join(' · ')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h3>Sample source records</h3>
+            <p>First 5 records. The original source is never modified.</p>
+          </div>
+          <Button
+            onClick={() =>
+              download('relay-source-bundle.json', {
+                name: dataset.name,
+                sourceSchema: dataset.sourceSchema,
+                targetSchema: dataset.targetSchema,
+                records: dataset.records,
+              })
+            }
+          >
+            <Download size={14} />
+            Export source bundle
+          </Button>
+        </div>
+        <div className="table-scroll">
+          <table className="data-table">
+            <thead>
+              <tr>
+                {dataset.sourceSchema.fields.map((f) => (
+                  <th key={f.name}>{f.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {dataset.records.slice(0, 5).map((r, i) => (
+                <tr key={i}>
+                  {dataset.sourceSchema.fields.map((f) => (
+                    <td key={f.name}>
+                      <code>{display(r[f.name])}</code>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p className="digest-footnote">
+        Dataset fingerprint <code>{dataset.fingerprint}</code>
+      </p>
+    </div>
+  );
 }
-export function ImportDialog({ onImport, onClose, busy, hasTarget }: { onImport: (b: Bundle) => void; onClose: () => void; busy: boolean; hasTarget: boolean }) {
-  const [bundle, setBundle] = useState<Bundle | null>(null); const [filename, setFilename] = useState(''); const [error, setError] = useState('');
+export function ImportDialog({
+  onImport,
+  onClose,
+  busy,
+  hasTarget,
+}: {
+  onImport: (b: Bundle) => void;
+  onClose: () => void;
+  busy: boolean;
+  hasTarget: boolean;
+}) {
+  const [bundle, setBundle] = useState<Bundle | null>(null);
+  const [filename, setFilename] = useState('');
+  const [error, setError] = useState('');
   async function read(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return;
-    setBundle(null); setError(''); setFilename(file.name);
-    if (file.size > LIMITS.bytes) { setError('File exceeds the 1 MB maximum.'); return; }
-    try { const parsed = bundleSchema.safeParse(JSON.parse(await file.text())); if (!parsed.success) { setError(parsed.error.issues.slice(0, 3).map(i => `${i.path.join('.')}: ${i.message}`).join(' · ')); return; } setBundle(parsed.data); }
-    catch { setError('The file must contain valid JSON.'); }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBundle(null);
+    setError('');
+    setFilename(file.name);
+    if (file.size > LIMITS.bytes) {
+      setError('File exceeds the 1 MB maximum.');
+      return;
+    }
+    try {
+      const parsed = bundleSchema.safeParse(JSON.parse(await file.text()));
+      if (!parsed.success) {
+        setError(
+          parsed.error.issues
+            .slice(0, 3)
+            .map((i) => `${i.path.join('.')}: ${i.message}`)
+            .join(' · '),
+        );
+        return;
+      }
+      setBundle(parsed.data);
+    } catch {
+      setError('The file must contain valid JSON.');
+    }
   }
-  return <Modal title="Bring your own dataset" eyebrow="BOUNDED JSON IMPORT" onClose={onClose}><div className="modal-body"><p className="modal-intro">Upload a JSON bundle containing <code>name</code>, <code>sourceSchema</code>, <code>targetSchema</code>, and <code>records</code>. Download the example to see the exact contract.</p><label className="upload-zone"><FileJson size={32} /><strong>{filename || 'Choose a JSON bundle'}</strong><span>Maximum 500 records, 32 fields, 1 MB</span><input type="file" accept=".json,application/json" aria-label="Choose JSON dataset" onChange={read} /></label>{error && <div className="error-message" role="alert">{error}</div>}{bundle && <div className="import-preview"><Check size={18} /><div><strong>{bundle.name}</strong><p>{bundle.records.length} records · {bundle.sourceSchema.name}<ArrowRight size={12} />{bundle.targetSchema.name}</p></div><Badge tone="green">Contract verified</Badge></div>}{hasTarget && <div className="warning-note">Roll back the active migration before loading another dataset.</div>}<div className="info-note"><Table2 size={16} /><span>Flat scalar records only. Schema types: string, number, integer, boolean, date, email, enum. Previous plans and activity are preserved.</span></div><Button onClick={() => download('relay-example-bundle.json', demoBundle)}><Download size={15} />Download example bundle</Button></div><div className="modal-footer"><Button onClick={onClose}>Cancel</Button><Button variant="primary" disabled={busy || !bundle || hasTarget} onClick={() => bundle && onImport(bundle)}><Upload size={15} />Load dataset & propose plan</Button></div></Modal>;
+  return (
+    <Modal title="Bring your own dataset" eyebrow="BOUNDED JSON IMPORT" onClose={onClose}>
+      <div className="modal-body">
+        <p className="modal-intro">
+          Upload a JSON bundle containing <code>name</code>, <code>sourceSchema</code>,{' '}
+          <code>targetSchema</code>, and <code>records</code>. Download the example to see the exact
+          contract.
+        </p>
+        <label className="upload-zone">
+          <FileJson size={32} />
+          <strong>{filename || 'Choose a JSON bundle'}</strong>
+          <span>Maximum 500 records, 32 fields, 1 MB</span>
+          <input
+            type="file"
+            accept=".json,application/json"
+            aria-label="Choose JSON dataset"
+            onChange={read}
+          />
+        </label>
+        {error && (
+          <div className="error-message" role="alert">
+            {error}
+          </div>
+        )}
+        {bundle && (
+          <div className="import-preview">
+            <Check size={18} />
+            <div>
+              <strong>{bundle.name}</strong>
+              <p>
+                {bundle.records.length} records · {bundle.sourceSchema.name}
+                <ArrowRight size={12} />
+                {bundle.targetSchema.name}
+              </p>
+            </div>
+            <Badge tone="green">Contract verified</Badge>
+          </div>
+        )}
+        {hasTarget && (
+          <div className="warning-note">
+            Roll back the active migration before loading another dataset.
+          </div>
+        )}
+        <div className="info-note">
+          <Table2 size={16} />
+          <span>
+            Flat scalar records only. Schema types: string, number, integer, boolean, date, email,
+            enum. Previous plans and activity are preserved.
+          </span>
+        </div>
+        <Button onClick={() => download('relay-example-bundle.json', demoBundle)}>
+          <Download size={15} />
+          Download example bundle
+        </Button>
+      </div>
+      <div className="modal-footer">
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          variant="primary"
+          disabled={busy || !bundle || hasTarget}
+          onClick={() => bundle && onImport(bundle)}
+        >
+          <Upload size={15} />
+          Load dataset & propose plan
+        </Button>
+      </div>
+    </Modal>
+  );
 }

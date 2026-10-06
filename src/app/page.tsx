@@ -1,2 +1,4 @@
 import { Workbench } from '@/components/workbench';
-export default function Home() { return <Workbench />; }
+export default function Home() {
+  return <Workbench />;
+}

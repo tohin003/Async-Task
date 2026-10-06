@@ -1,18 +1,315 @@
 'use client';
 import { useState } from 'react';
-import { ArrowRight, CheckCheck, Download, Play, RotateCcw, Scale, ShieldCheck, Database, LockKeyhole, RefreshCw, Search } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCheck,
+  Download,
+  Play,
+  RotateCcw,
+  Scale,
+  ShieldCheck,
+  Database,
+  LockKeyhole,
+  RefreshCw,
+  Search,
+} from 'lucide-react';
 import type { Plan, Workspace } from '@/lib/contracts';
-import { reconcile, verifyHistory } from '@/lib/lifecycle';
+import { getDataset, reconcile, verifyHistory } from '@/lib/lifecycle';
 import { Badge, Button, display, download, Empty, time } from './ui';
 
-export function ReconciliationView({ workspace, plan, busy, onExecute, onRollback, onReconcile }: { workspace: Workspace; plan: Plan; busy: boolean; onExecute: () => void; onRollback: () => void; onReconcile: () => void }) {
-  const [search, setSearch] = useState(''); const [page, setPage] = useState(0);
-  const report = reconcile(workspace, plan.id); const approval = workspace.approvals[plan.id];
-  const executions = workspace.executions.filter(e => e.planId === plan.id); const committed = executions.some(e => e.status === 'committed'); const rolled = executions.some(e => e.status === 'rolled_back');
-  const rows = workspace.target.filter(r => r.planId === plan.id && JSON.stringify(r.data).toLowerCase().includes(search.toLowerCase()));
-  return <div className="view-stack"><div className="panel"><div className="panel-head"><div><h3>Reconciliation</h3><p>Compare expected records, target content and quarantine totals.</p></div><Badge tone={report.status === 'Balanced' ? 'green' : report.status === 'Mismatch' ? 'red' : 'neutral'}>{report.status === 'Balanced' && <CheckCheck size={14} />}{report.status}</Badge></div><div className="reconcile-equation"><div><span>Source</span><strong>{report.source}</strong></div><span>=</span><div><span>Matched target</span><strong className="text-green">{report.matched}</strong></div><span>+</span><div><span>Quarantined</span><strong className="text-amber">{report.rejected}</strong></div><span>+</span><div><span>Unmatched</span><strong className={report.missing.length + report.drifted.length > 0 ? 'text-red' : ''}>{report.missing.length + report.drifted.length}</strong></div></div><div className="reconcile-checks"><span><ShieldCheck size={16} />{report.missing.length} missing records</span><span><Scale size={16} />{report.drifted.length} content mismatches</span><span><Database size={16} />{report.unexpected.length} unexpected records</span><span><LockKeyhole size={16} />{verifyHistory(workspace.events) ? 'History chain verified' : 'History integrity failed'}</span></div><div className="panel-bottom"><span className="helper">Counts and SHA-256 content hashes are checked independently.</span><Button disabled={busy} onClick={onReconcile}><RefreshCw size={14} />Run reconciliation</Button></div></div>
-    <div className="execution-grid"><div className="panel execution-card"><div className="execution-card-icon"><Play size={20} /></div><h3>{rolled ? 'Migration rolled back' : committed ? 'Migration committed' : 'Ready when you are'}</h3><p>{rolled ? 'This version is closed. Create, validate and approve a new version to migrate again.' : committed ? 'Retry safely. Matching rows are skipped and no duplicate keys are inserted.' : approval ? `Plan v${plan.version} was approved by ${approval.reviewer}. Execution will recompute and verify the approved dry run.` : 'Validate the mapping and record explicit user approval before writing to the mock target.'}</p>{approval && <div className="approval-record"><ShieldCheck size={15} /><span>Approved by <strong>{approval.reviewer}</strong><small>{time(approval.createdAt)}</small></span></div>}<Button variant="primary" disabled={busy || !approval || rolled} onClick={onExecute}>{committed ? <RefreshCw size={15} /> : <Play size={15} />}{committed ? 'Retry migration safely' : 'Execute approved migration'}</Button></div><div className="panel execution-card rollback-card"><div className="execution-card-icon"><RotateCcw size={20} /></div><h3>A reversible migration.</h3><p>Rollback removes only rows owned by this plan. Source data, quarantined records, approvals and execution history are preserved.</p><div className="rollback-count"><strong>{report.target}</strong><span>owned target rows</span></div><Button disabled={busy || !committed} onClick={onRollback}><RotateCcw size={15} />Roll back migration</Button></div></div>
-    {executions.length > 0 && <div className="panel"><div className="panel-head"><div><h3>Execution attempts <span className="count-badge">{executions.length}</span></h3><p>Every execution and retry has its own durable receipt.</p></div></div><div className="table-scroll"><table className="data-table"><thead><tr><th>Attempt</th><th>Timestamp</th><th>Inserted</th><th>Skipped</th><th>Quarantined</th><th>Status</th></tr></thead><tbody>{executions.map(e => <tr key={e.id}><td className="mono">#{e.attempt}</td><td>{time(e.createdAt)}</td><td>{e.inserted}</td><td>{e.skipped}</td><td>{e.rejected}</td><td><Badge tone={e.status === 'committed' ? 'green' : e.status === 'failed' ? 'red' : 'neutral'}>{e.status.replace('_', ' ')}</Badge>{e.error && <p className="execution-error">{e.error}</p>}</td></tr>)}</tbody></table></div></div>}
-    <div className="panel"><div className="panel-head"><div><h3>Mock target store <span className="count-badge">{report.target}</span></h3><p>{workspace.dataset.targetSchema.name} · Persistent in this browser · {report.totalTarget} total rows</p></div><Button disabled={!report.target} onClick={() => download(`relay-target-v${plan.version}.json`, workspace.target.filter(r => r.planId === plan.id))}><Download size={14} />Export target</Button></div>{!report.target ? <Empty icon={<Database size={26} />} title="Your mock target is empty">{rolled ? 'Rollback complete. The migration history remains available in Activity.' : 'Approved, accepted records appear here after you execute the migration.'}</Empty> : <><div className="table-toolbar"><label className="search-input"><Search size={15} /><input aria-label="Search target records" placeholder="Search target records…" value={search} onChange={e => { setSearch(e.target.value); setPage(0); }} /></label><Badge tone="blue">Read-only inspector</Badge></div><div className="table-scroll"><table className="data-table"><thead><tr>{workspace.dataset.targetSchema.fields.map(f => <th key={f.name}>{f.name}</th>)}</tr></thead><tbody>{rows.slice(page * 10, page * 10 + 10).map(r => <tr key={r.key}>{workspace.dataset.targetSchema.fields.map(f => <td key={f.name}><code>{display(r.data[f.name])}</code></td>)}</tr>)}</tbody></table></div><div className="pagination"><span>{rows.length} matching target rows</span><div><Button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</Button><span>{page + 1} / {Math.max(1, Math.ceil(rows.length / 10))}</span><Button disabled={(page + 1) * 10 >= rows.length} onClick={() => setPage(page + 1)}>Next<ArrowRight size={14} /></Button></div></div></>}</div>
-  </div>;
+export function ReconciliationView({
+  workspace,
+  plan,
+  busy,
+  onExecute,
+  onRollback,
+  onReconcile,
+}: {
+  workspace: Workspace;
+  plan: Plan;
+  busy: boolean;
+  onExecute: () => void;
+  onRollback: () => void;
+  onReconcile: () => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const report = reconcile(workspace, plan.id);
+  const approval = workspace.approvals[plan.id];
+  const dataset = getDataset(workspace, plan);
+  const executions = workspace.executions.filter((e) => e.planId === plan.id);
+  const committed = executions.some((e) => e.status === 'committed');
+  const rolled = executions.some((e) => e.status === 'rolled_back');
+  const rows = workspace.target.filter(
+    (r) =>
+      r.planId === plan.id && JSON.stringify(r.data).toLowerCase().includes(search.toLowerCase()),
+  );
+  return (
+    <div className="view-stack">
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h3>Reconciliation</h3>
+            <p>Compare expected records, target content and quarantine totals.</p>
+          </div>
+          <Badge
+            tone={
+              report.status === 'Balanced'
+                ? 'green'
+                : report.status === 'Mismatch'
+                  ? 'red'
+                  : 'neutral'
+            }
+          >
+            {report.status === 'Balanced' && <CheckCheck size={14} />}
+            {report.status}
+          </Badge>
+        </div>
+        <div className="reconcile-equation">
+          <div>
+            <span>Source</span>
+            <strong>{report.source}</strong>
+          </div>
+          <span>=</span>
+          <div>
+            <span>Matched target</span>
+            <strong className="text-green">{report.matched}</strong>
+          </div>
+          <span>+</span>
+          <div>
+            <span>Quarantined</span>
+            <strong className="text-amber">{report.rejected}</strong>
+          </div>
+          <span>+</span>
+          <div>
+            <span>Unmatched</span>
+            <strong className={report.missing.length + report.drifted.length > 0 ? 'text-red' : ''}>
+              {report.missing.length + report.drifted.length}
+            </strong>
+          </div>
+        </div>
+        <div className="reconcile-checks">
+          <span>
+            <ShieldCheck size={16} />
+            {report.missing.length} missing records
+          </span>
+          <span>
+            <Scale size={16} />
+            {report.drifted.length} content mismatches
+          </span>
+          <span>
+            <Database size={16} />
+            {report.unexpected.length} unexpected records
+          </span>
+          <span>
+            <LockKeyhole size={16} />
+            {verifyHistory(workspace.events)
+              ? 'History chain verified'
+              : 'History integrity failed'}
+          </span>
+        </div>
+        <div className="panel-bottom">
+          <span className="helper">
+            Counts and SHA-256 content hashes are checked independently.
+          </span>
+          <Button disabled={busy} onClick={onReconcile}>
+            <RefreshCw size={14} />
+            Run reconciliation
+          </Button>
+        </div>
+      </div>
+      <div className="execution-grid">
+        <div className="panel execution-card">
+          <div className="execution-card-icon">
+            <Play size={20} />
+          </div>
+          <h3>
+            {rolled
+              ? 'Migration rolled back'
+              : committed
+                ? 'Migration committed'
+                : 'Ready when you are'}
+          </h3>
+          <p>
+            {rolled
+              ? 'This version is closed. Create, validate and approve a new version to migrate again.'
+              : committed
+                ? 'Retry safely. Matching rows are skipped and no duplicate keys are inserted.'
+                : approval
+                  ? `Plan v${plan.version} was approved by ${approval.reviewer}. Execution will recompute and verify the approved dry run.`
+                  : 'Validate the mapping and record explicit user approval before writing to the mock target.'}
+          </p>
+          {approval && (
+            <div className="approval-record">
+              <ShieldCheck size={15} />
+              <span>
+                Approved by <strong>{approval.reviewer}</strong>
+                <small>{time(approval.createdAt)}</small>
+              </span>
+            </div>
+          )}
+          <Button variant="primary" disabled={busy || !approval || rolled} onClick={onExecute}>
+            {committed ? <RefreshCw size={15} /> : <Play size={15} />}
+            {committed ? 'Retry migration safely' : 'Execute approved migration'}
+          </Button>
+        </div>
+        <div className="panel execution-card rollback-card">
+          <div className="execution-card-icon">
+            <RotateCcw size={20} />
+          </div>
+          <h3>A reversible migration.</h3>
+          <p>
+            Rollback removes only rows owned by this plan. Source data, quarantined records,
+            approvals and execution history are preserved.
+          </p>
+          <div className="rollback-count">
+            <strong>{report.target}</strong>
+            <span>owned target rows</span>
+          </div>
+          <Button disabled={busy || !committed} onClick={onRollback}>
+            <RotateCcw size={15} />
+            Roll back migration
+          </Button>
+        </div>
+      </div>
+      {executions.length > 0 && (
+        <div className="panel">
+          <div className="panel-head">
+            <div>
+              <h3>
+                Execution attempts <span className="count-badge">{executions.length}</span>
+              </h3>
+              <p>Every execution and retry has its own durable receipt.</p>
+            </div>
+          </div>
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Attempt</th>
+                  <th>Timestamp</th>
+                  <th>Inserted</th>
+                  <th>Skipped</th>
+                  <th>Quarantined</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {executions.map((e) => (
+                  <tr key={e.id}>
+                    <td className="mono">#{e.attempt}</td>
+                    <td>{time(e.createdAt)}</td>
+                    <td>{e.inserted}</td>
+                    <td>{e.skipped}</td>
+                    <td>{e.rejected}</td>
+                    <td>
+                      <Badge
+                        tone={
+                          e.status === 'committed'
+                            ? 'green'
+                            : e.status === 'failed'
+                              ? 'red'
+                              : 'neutral'
+                        }
+                      >
+                        {e.status.replace('_', ' ')}
+                      </Badge>
+                      {e.error && <p className="execution-error">{e.error}</p>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h3>
+              Mock target store <span className="count-badge">{report.target}</span>
+            </h3>
+            <p>
+              {dataset.targetSchema.name} · Persistent in this browser · {report.totalTarget} total
+              rows
+            </p>
+          </div>
+          <Button
+            disabled={!report.target}
+            onClick={() =>
+              download(
+                `relay-target-v${plan.version}.json`,
+                workspace.target.filter((r) => r.planId === plan.id),
+              )
+            }
+          >
+            <Download size={14} />
+            Export target
+          </Button>
+        </div>
+        {!report.target ? (
+          <Empty icon={<Database size={26} />} title="Your mock target is empty">
+            {rolled
+              ? 'Rollback complete. The migration history remains available in Activity.'
+              : 'Approved, accepted records appear here after you execute the migration.'}
+          </Empty>
+        ) : (
+          <>
+            <div className="table-toolbar">
+              <label className="search-input">
+                <Search size={15} />
+                <input
+                  aria-label="Search target records"
+                  placeholder="Search target records…"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(0);
+                  }}
+                />
+              </label>
+              <Badge tone="blue">Read-only inspector</Badge>
+            </div>
+            <div className="table-scroll">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    {dataset.targetSchema.fields.map((f) => (
+                      <th key={f.name}>{f.name}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.slice(page * 10, page * 10 + 10).map((r) => (
+                    <tr key={r.key}>
+                      {dataset.targetSchema.fields.map((f) => (
+                        <td key={f.name}>
+                          <code>{display(r.data[f.name])}</code>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="pagination">
+              <span>{rows.length} matching target rows</span>
+              <div>
+                <Button disabled={page === 0} onClick={() => setPage(page - 1)}>
+                  Previous
+                </Button>
+                <span>
+                  {page + 1} / {Math.max(1, Math.ceil(rows.length / 10))}
+                </span>
+                <Button disabled={(page + 1) * 10 >= rows.length} onClick={() => setPage(page + 1)}>
+                  Next
+                  <ArrowRight size={14} />
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
